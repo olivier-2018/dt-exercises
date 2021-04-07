@@ -7,16 +7,14 @@
 # Each notebooks is required to specify the package_name, namely the package where it has to be copied in the ros ws,
 # and a name that is the name of the notebook in the notebooks folder.
 #
-#  notebooks:
-#    - notebook1:
-#        package_name: ""
-#        name: ""
-#    - notebook2:
-#        package_name: ""
-#        name: ""
-#    - notebook2:
-#        package_name: ""
-#        name: ""
+# files:
+#   - notebook:
+#       target_dir: "exercise_ws/src/encoder_pose/src"
+#       input_file: "notebooks/odometry_activity.ipynb"
+#   - file:
+#       target_dir: "notebooks/"
+#       input_file: "exercise_ws/src/encoder_pose/src/encoder_pose_node.py"
+#     
 #
 # agent_base: "duckietown_baseline" # currently not implemented, the agent base image to use
 # ws_dir: "exercise_ws" # directory that contains the code
@@ -28,9 +26,9 @@ agent_base: "duckietown_baseline" # currently not implemented, the agent base im
 ws_dir: "exercise_ws" # directory that contains the code
 agent_run_cmd: "default.sh" # the script in "launchers" to run the agent with
 
-notebooks:
+files:
   - notebook:
-      package_name: "encoder_pose"
-      name: "odometry_activity"
-    
+      target_dir: "exercise_ws/src/encoder_pose/src"
+      input_file: "notebooks/odometry_activity.ipynb"
+
   
