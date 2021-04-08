@@ -25,6 +25,7 @@
 agent_base: "duckietown_baseline" # currently not implemented, the agent base image to use
 ws_dir: "exercise_ws" # directory that contains the code
 agent_run_cmd: "default.sh" # the script in "launchers" to run the agent with
+ros: true
 
 files:
   - notebook:
