@@ -17,15 +17,15 @@ def PIDController(delta_phi_right, delta_phi_left, prev_e, delta_t):
         current_e (:double:) current error.
     """
 
-    # x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
-    # y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
-    # theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/(2*L)
-    e = delta_phi_right-delta_phi_left # the two wheels have to spin the same
+    e = delta_phi_left-delta_phi_right # the two wheels have to spin the same
     Kp=1
     Ki=0
     Kd=0
 
     u = Kp*e + Ki*(prev_e+e)*delta_t + Kd*e/delta_t
+
+    print(f"\n\nDelta time : {delta_t} \nE : {e} \nU : {u} \nDelta phi right : {delta_phi_right} \nDelta phi left : {delta_phi_left}")
+
     
     return u, e
 

@@ -115,7 +115,6 @@ class ControllerNode(DTROS):
 
         # Assuming no wheel slipping
         self.delta_phi_left = 2*np.pi*delta_ticks/total_ticks
-        print(self.delta_time)
         if self.time == 0:
             self.time = time.time()
             return
@@ -148,7 +147,7 @@ class ControllerNode(DTROS):
 
         # Assuming no wheel slipping
         self.delta_phi_right = 2*np.pi*delta_ticks/total_ticks
-        print(self.delta_time)
+
         if self.time == 0:
             self.time = time.time()
             return
