@@ -5,6 +5,7 @@ import rospy
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import WheelEncoderStamped
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry
 
 import odometry_activity
 
@@ -56,7 +57,7 @@ class EncoderPoseNode(DTROS):
         # Construct publishers
         self.db_estimated_pose = rospy.Publisher(
             f'/{self.veh}/encoder_localization',
-            PoseStamped,
+            Odometry,
             queue_size=1,
             dt_topic_type=TopicType.LOCALIZATION
         )
@@ -136,19 +137,39 @@ class EncoderPoseNode(DTROS):
 
         pose = PoseStamped()
 
-        pose.header.stamp = rospy.Time.now()
-        pose.header.frame_id = 'map'
+        # pose.header.stamp = rospy.Time.now()
+        # pose.header.frame_id = 'map'
 
-        pose.pose.position.x = self.x_curr
-        pose.pose.position.y = self.y_curr
-        pose.pose.position.z = 0
+        # pose.pose.position.x = self.x_curr
+        # pose.pose.position.y = self.y_curr
+        # pose.pose.position.z = 0
 
-        pose.pose.orientation.x = 0
-        pose.pose.orientation.y = 0
-        pose.pose.orientation.z = np.sin(self.theta_curr/2)
-        pose.pose.orientation.w = np.cos(self.theta_curr/2)
+        # pose.pose.orientation.x = 0
+        # pose.pose.orientation.y = 0
+        # pose.pose.orientation.z = np.sin(self.theta_curr/2)
+        # pose.pose.orientation.w = np.cos(self.theta_curr/2)
 
-        self.db_estimated_pose.publish(pose)
+        # self.db_estimated_pose.publish(pose)
+
+        odom = Odometry()
+        odom.header.frame_id = "map"
+        odom.header.stamp = rospy.Time.now()
+
+        odom.pose.pose.position.x = self.x_curr
+        odom.pose.pose.position.y = self.y_curr
+        odom.pose.pose.position.z = 0
+
+        odom.pose.pose.orientation.x = 0
+        odom.pose.pose.orientation.y = 0
+        odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
+        odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
+
+        #odom.pose.covariance = np.diag([1e-2, 1e-2, 1e-2, 1e3, 1e3, 1e-1]).ravel()
+        #odom.twist.twist.linear.x = self._lin_vel
+        #odom.twist.twist.angular.z = self._ang_vel
+        #odom.twist.covariance = np.diag([1e-2, 1e3, 1e3, 1e3, 1e3, 1e-2]).ravel()
+        
+        self.db_estimated_pose.publish(odom)
 
     #
     # Pose estimation is the function that is created by the user.

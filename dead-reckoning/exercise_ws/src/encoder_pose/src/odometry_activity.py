@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[16]:
 
 
 
@@ -22,6 +22,11 @@ def poseEstimation( R,
         Returns:
             x_curr, y_curr, theta_curr (:double: values)
     """
+    # x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
+    # y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
+    # theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/(2*L)
+        
+    
     w = [R, R/L, 1]
     x = np.array(
         [
