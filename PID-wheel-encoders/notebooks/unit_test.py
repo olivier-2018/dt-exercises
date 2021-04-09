@@ -35,10 +35,11 @@ class UnitTestPID:
     def plot(self, theta_hat_, err_):
         import matplotlib.pyplot as plt
 
-        # print(theta_hat_)
-        plt.axis([0, 10, np.min(theta_hat_), np.max(theta_hat_)])
-        # red dashes, blue squares and green triangles
+        plt.axis([0, 10, np.min([np.min(theta_hat_),np.min(err_)]), np.max([np.max(theta_hat_),np.max(err_)])])
         plt.plot(self.t1, (theta_hat_), 'r--', self.t1, (err_), 'b')
+        plt.legend(['Theta','error'])
+        plt.show()
+
 
 
     def sim(self, omega, v, time):
