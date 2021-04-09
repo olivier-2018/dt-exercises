@@ -46,16 +46,21 @@ class ControllerNode(DTROS):
         self.delta_phi_right = 0
         self.right_tick_prev = 0
 
-        self.current_e = 0
+        self.theta_prev = 0
+        self.prev_e = 0
+        self.prev_int = 0
         self.time = 0
-        self.delta_time = 0
+        self.v_0 = 1.0
 
         self.ticks_left = 0
         self.ticks_right = 0
 
         # nominal R and L:
-        #self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 100)
-        #self.L = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
+        self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 100)
+        self.L = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
+
+        # set gain
+        self.setGain(self.v_0)
 
         # Wheel encoders subscribers:
 
@@ -84,19 +89,27 @@ class ControllerNode(DTROS):
             dt_topic_type=TopicType.CONTROL
         )
 
+        self.SIM_STARTED = False
+        rospy.Timer(rospy.Duration(0.2), self.CalcTheta)
+
         self.log("Initialized!")
 
-    def publishCmd(self, omega):
+    def setGain(self, g):
+        g = min(max(g, 0), 1)
+        rospy.set_param(f"/{self.veh}/kinematics_node/gain", g)
+
+    def publishCmd(self, u):
         """Publishes a car command message.
 
         Args:
             omega (:obj:`double`): omega for the control action.
-        """
+        """       
+
         car_control_msg = Twist2DStamped()
         car_control_msg.header.stamp = rospy.Time.now()
 
-        car_control_msg.v = 0.3
-        car_control_msg.omega = omega
+        car_control_msg.v = u[0]  # v
+        car_control_msg.omega = u[1]  # omega
 
         self.pub_car_cmd.publish(car_control_msg)
 
@@ -115,22 +128,10 @@ class ControllerNode(DTROS):
 
         # Assuming no wheel slipping
         self.delta_phi_left = 2*np.pi*delta_ticks/total_ticks
-        if self.time == 0:
-            self.time = time.time()
-            return
 
-        self.delta_time = time.time()-self.time
-
-        self.time = time.time()
-
-        omega, self.current_e = PID_controller.PIDController(
-            self.delta_phi_right,
-            self.delta_phi_left,
-            self.current_e,
-            self.delta_time
-        )
-
-        self.publishCmd(omega)
+        # control action every time we receive a tick
+        # self.CalcTheta()
+        self.SIM_STARTED = True
 
     def cbRightEncoder(self, msg_encoder):
         """
@@ -148,22 +149,36 @@ class ControllerNode(DTROS):
         # Assuming no wheel slipping
         self.delta_phi_right = 2*np.pi*delta_ticks/total_ticks
 
-        if self.time == 0:
-            self.time = time.time()
+        # control action every time we receive a tick
+        # self.CalcTheta()
+        self.SIM_STARTED = True
+
+    def CalcTheta(self, event):
+        """
+        Calculate theta and perform the control actions given by the PID
+        """
+        if not self.SIM_STARTED:
             return
 
-        self.delta_time = time.time()-self.time
+        theta_curr = self.theta_prev + self.R * \
+            (self.delta_phi_right-self.delta_phi_left)/(2*self.L)
+
+        delta_time = time.time()-self.time
 
         self.time = time.time()
 
-        omega, self.current_e = PID_controller.PIDController(
-            self.delta_phi_right,
-            self.delta_phi_left,
-            self.current_e,
-            self.delta_time
+        u, self.prev_e, self.prev_int = PID_controller.PIDController(
+            self.v_0,
+            theta_curr,
+            self.prev_e,
+            self.prev_int,
+            delta_time
         )
 
-        self.publishCmd(omega)
+        # self.setGain(u[1])
+        self.publishCmd(u)
+
+        self.theta_prev = theta_curr
 
     def onShutdown(self):
         print("Shutting down, bye, bye!")
