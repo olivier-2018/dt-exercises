@@ -8,8 +8,12 @@ from geometry_msgs.msg import PoseStamped
 
 from std_msgs.msg import Bool
 
+import PID_controller
 
-class WheelsCalibrationNode(DTROS):
+import time
+
+
+class ControllerNode(DTROS):
     """
         Computes an estimate of the Duckiebot pose using the wheel encoders.
         Args:
@@ -28,7 +32,7 @@ class WheelsCalibrationNode(DTROS):
     def __init__(self, node_name):
 
         # Initialize the DTROS parent class
-        super(WheelsCalibrationNode, self).__init__(
+        super(ControllerNode, self).__init__(
             node_name=node_name,
             node_type=NodeType.LOCALIZATION
         )
@@ -42,6 +46,15 @@ class WheelsCalibrationNode(DTROS):
         self.delta_phi_right = 0
         self.right_tick_prev = 0
 
+        self.theta_prev = 0
+        self.x_prev = 0
+        self.prev_e_theta = 0
+        self.prev_e_x = 0
+        self.prev_int_theta = 0
+        self.prev_int_x = 0
+        self.time = 0
+        self.v_0 = 1.0
+
         self.ticks_left = 0
         self.ticks_right = 0
 
@@ -49,14 +62,10 @@ class WheelsCalibrationNode(DTROS):
         self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 100)
         self.L = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
 
+        # set gain
+        self.setGain(self.v_0)
+
         # Wheel encoders subscribers:
-        keypress_topic = f'/{self.veh}/EnterPressed'
-        _ = rospy.Subscriber(
-            keypress_topic,
-            Bool,
-            self.cbEnterPressed,
-            queue_size=1
-        )
 
         left_encoder_topic = f'/{self.veh}/left_wheel_encoder_node/tick'
         self.enco_left = rospy.Subscriber(
@@ -75,25 +84,37 @@ class WheelsCalibrationNode(DTROS):
         )
 
         # Param names
-        self.START_MOVING = False
-        self.TRIM_PARAM = f'/{self.veh}/kinematics_node/trim'
+        car_cmd_topic = f'/{self.veh}/joy_mapper_node/car_cmd'
+        self.pub_car_cmd = rospy.Publisher(
+            car_cmd_topic,
+            Twist2DStamped,
+            queue_size=1,
+            dt_topic_type=TopicType.CONTROL
+        )
+
+        self.SIM_STARTED = False
+        rospy.Timer(rospy.Duration(0.2), self.CalcTheta)
 
         self.log("Initialized!")
 
-    def cbEnterPressed(self, msg):
-        if msg.data == True:
-            if not self.START_MOVING:
-                self.ticks_left = self.left_tick_prev = 0
-                self.ticks_right = self.right_tick_prev = 0
-                self.START_MOVING = True
-            else:
-                if self.ticks_right > self.ticks_left:
-                    trim = -self.ticks_left/self.ticks_right
-                else:
-                    trim = self.ticks_right/self.ticks_left
-                print(f"Suggested trim = {trim}")
-                rospy.set_param(self.TRIM_PARAM, trim)
-                self.START_MOVING = False
+    def setGain(self, g):
+        g = min(max(g, 0), 1)
+        rospy.set_param(f"/{self.veh}/kinematics_node/gain", g)
+
+    def publishCmd(self, u):
+        """Publishes a car command message.
+
+        Args:
+            omega (:obj:`double`): omega for the control action.
+        """
+
+        car_control_msg = Twist2DStamped()
+        car_control_msg.header.stamp = rospy.Time.now()
+
+        car_control_msg.v = u[0]  # v
+        car_control_msg.omega = u[1]  # omega
+
+        self.pub_car_cmd.publish(car_control_msg)
 
     def cbLeftEncoder(self, msg_encoder):
         """
@@ -102,14 +123,18 @@ class WheelsCalibrationNode(DTROS):
                 msg_encoder (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
         ticks = msg_encoder.data
-        if not self.START_MOVING:
-            self.left_tick_prev = ticks
 
         delta_ticks = ticks-self.left_tick_prev
         self.left_tick_prev = ticks
 
-        self.ticks_left += delta_ticks
-        print(f"LEFT ticks : {self.ticks_left}")
+        total_ticks = msg_encoder.resolution
+
+        # Assuming no wheel slipping
+        self.delta_phi_left = 2*np.pi*delta_ticks/total_ticks
+
+        # control action every time we receive a tick
+        # self.CalcTheta()
+        self.SIM_STARTED = True
 
     def cbRightEncoder(self, msg_encoder):
         """
@@ -118,14 +143,51 @@ class WheelsCalibrationNode(DTROS):
                 msg_encoder (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
         ticks = msg_encoder.data
-        if not self.START_MOVING:
-            self.right_tick_prev = ticks
 
         delta_ticks = ticks-self.right_tick_prev
         self.right_tick_prev = ticks
 
-        self.ticks_right += delta_ticks
-        print(f"RIGHT ticks : {self.ticks_right}")
+        total_ticks = msg_encoder.resolution
+
+        # Assuming no wheel slipping
+        self.delta_phi_right = 2*np.pi*delta_ticks/total_ticks
+
+        # control action every time we receive a tick
+        # self.CalcTheta()
+        self.SIM_STARTED = True
+
+    def CalcTheta(self, event):
+        """
+        Calculate theta and perform the control actions given by the PID
+        """
+        if not self.SIM_STARTED:
+            return
+
+        theta_curr = self.theta_prev + self.R * \
+            (self.delta_phi_right-self.delta_phi_left)/(2*self.L)
+
+        x_curr = self.x_prev + self.R * \
+            (self.delta_phi_right+self.delta_phi_left)*np.cos(self.theta_prev)/2
+
+        delta_time = time.time()-self.time
+
+        self.time = time.time()
+
+        u, self.prev_e_x, self.prev_int_x, self.prev_e_theta, self.prev_int_theta = PID_controller.PIDController(
+            self.v_0,
+            theta_curr,
+            x_curr,
+            self.prev_e_y,
+            self.prev_e_theta,
+            self.prev_int_y,
+            self.prev_int_theta,
+            delta_time
+        )
+
+        # self.setGain(u[1])
+        self.publishCmd(u)
+
+        self.theta_prev = theta_curr
 
     def onShutdown(self):
         print("Shutting down, bye, bye!")
@@ -133,8 +195,7 @@ class WheelsCalibrationNode(DTROS):
 
 if __name__ == "__main__":
     # Initialize the node
-    wheels_calibration_node = WheelsCalibrationNode(
-        node_name='wheels_calibration_node')
+    controller_node = ControllerNode(node_name='controller_node')
     # Keep it spinning
     rospy.spin()
-    rospy.on_shutdown(wheels_calibration_node.onShutdown)
+    rospy.on_shutdown(controller_node.onShutdown)
