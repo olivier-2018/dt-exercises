@@ -23,12 +23,12 @@
 # agent_run_cmd: "run_all.sh" # the script in "launchers" to run the agent with
 
 agent_base: "duckietown_baseline" # currently not implemented, the agent base image to use
-ws_dir: "exercise_ws" # directory that contains the code
+ws_dir: "solution" # directory that contains the code
 lab_dir: .
 agent_run_cmd: "default.sh" # the script in "launchers" to run the agent with
 ros: true
 
 files:
   - notebook:
-      target_dir: "exercise_ws/src/controller_pkg/src"
+      target_dir: "solution/src/controller_pkg/src"
       input_file: "solution/PID_controller.ipynb"

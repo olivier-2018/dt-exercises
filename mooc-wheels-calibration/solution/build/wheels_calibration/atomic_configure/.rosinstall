@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /code/solution/devel/.private/wheels_calibration/setup.sh

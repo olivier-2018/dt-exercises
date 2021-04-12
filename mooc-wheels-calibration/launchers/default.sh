@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source /environment.sh
-source /code/exercise_ws/devel/setup.bash
+source /code/solution/devel/setup.bash
 
 # initialize launch file
 dt-launchfile-init

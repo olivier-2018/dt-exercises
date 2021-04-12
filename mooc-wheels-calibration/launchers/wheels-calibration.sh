@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source /environment.sh
-source /code/exercise_ws/devel/setup.bash
+source /code/solution/devel/setup.bash
 
 # initialize launch file
 dt-launchfile-init
@@ -14,7 +14,7 @@ dt-launchfile-init
 
 # launching app
 
-python3 /code/exercise_ws/src/interaction_pkg/src/interaction_node.py
+python3 /code/solution/src/interaction_pkg/src/interaction_node.py
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

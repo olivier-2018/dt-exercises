@@ -8,9 +8,9 @@ RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
 
 RUN pip list
 
-RUN mkdir /code/exercise_ws
+RUN mkdir /code/solution
 
-COPY exercise_ws /code/exercise_ws
+COPY solution /code/solution
 COPY launchers /code
 
 CMD ["bash", "/code/submit.sh"]
