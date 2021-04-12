@@ -60,6 +60,7 @@ if __name__ == "__main__":
         print(f"The trim value found using the wheel encoders id {trim}")
         if(input("Do you want to save it? (y/n): ")=="y"):
             rospy.ServiceProxy(SAVE_TRIM, Empty)
+            print("Press CRTL+C")
             break
         else:
             print("Trim value not saved, you can replicate the procedure or close this program with CRTL+C")

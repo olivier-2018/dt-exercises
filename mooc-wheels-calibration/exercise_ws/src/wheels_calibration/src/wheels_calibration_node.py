@@ -36,11 +36,8 @@ class WheelsCalibrationNode(DTROS):
         self.veh = rospy.get_namespace().strip("/")
 
         # Add the node parameters to the parameters dictionary
-        self.delta_phi_left = 0
-        self.left_tick_prev = 0
-
-        self.delta_phi_right = 0
-        self.right_tick_prev = 0
+        self.last_ticks_left = 0
+        self.last_ticks_right = 0
 
         self.ticks_left = 0
         self.ticks_right = 0
@@ -77,22 +74,30 @@ class WheelsCalibrationNode(DTROS):
         # Param names
         self.START_MOVING = False
         self.TRIM_PARAM = f'/{self.veh}/kinematics_node/trim'
+        self.curr_trim = rospy.get_param(self.TRIM_PARAM, 0.0)
 
         self.log("Initialized!")
 
     def cbEnterPressed(self, msg):
         if msg.data == True:
             if not self.START_MOVING:
-                self.ticks_left = self.left_tick_prev = 0
-                self.ticks_right = self.right_tick_prev = 0
+                self.last_ticks_left = self.ticks_left
+                self.last_ticks_right = self.ticks_right
                 self.START_MOVING = True
             else:
-                if self.ticks_right > self.ticks_left:
-                    trim = -self.ticks_left/self.ticks_right
+                calib_ticks_left = self.ticks_left-self.last_ticks_left
+                calib_ticks_right = self.ticks_right-self.last_ticks_right
+
+                if calib_ticks_right == 0 or calib_ticks_left == 0:
+                    print("Please move the Duckiebot using the joystick from the VNC")
                 else:
-                    trim = self.ticks_right/self.ticks_left
-                print(f"Suggested trim = {trim}")
-                rospy.set_param(self.TRIM_PARAM, trim)
+                    if calib_ticks_right > calib_ticks_left:
+                        self.curr_trim = self.curr_trim - \
+                            (1-calib_ticks_left/calib_ticks_right)
+                    else:
+                        self.curr_trim = self.curr_trim+1-calib_ticks_right/calib_ticks_left
+                    print(f"Suggested trim = {self.curr_trim}")
+                    rospy.set_param(self.TRIM_PARAM, self.curr_trim)
                 self.START_MOVING = False
 
     def cbLeftEncoder(self, msg_encoder):
@@ -101,15 +106,11 @@ class WheelsCalibrationNode(DTROS):
             Args:
                 msg_encoder (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
-        ticks = msg_encoder.data
+        self.ticks_left = msg_encoder.data
         if not self.START_MOVING:
-            self.left_tick_prev = ticks
+            return
 
-        delta_ticks = ticks-self.left_tick_prev
-        self.left_tick_prev = ticks
-
-        self.ticks_left += delta_ticks
-        print(f"LEFT ticks : {self.ticks_left}")
+        print(f"LEFT ticks : {self.ticks_left-self.last_ticks_left}")
 
     def cbRightEncoder(self, msg_encoder):
         """
@@ -117,15 +118,11 @@ class WheelsCalibrationNode(DTROS):
             Args:
                 msg_encoder (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
-        ticks = msg_encoder.data
+        self.ticks_right = msg_encoder.data
         if not self.START_MOVING:
-            self.right_tick_prev = ticks
+            return
 
-        delta_ticks = ticks-self.right_tick_prev
-        self.right_tick_prev = ticks
-
-        self.ticks_right += delta_ticks
-        print(f"RIGHT ticks : {self.ticks_right}")
+        print(f"RIGHT ticks : {self.ticks_right-self.last_ticks_right}")
 
     def onShutdown(self):
         print("Shutting down, bye, bye!")
