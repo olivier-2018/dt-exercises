@@ -28,9 +28,11 @@ class UnitTestMessage:
 class UnitTestOdometry:
     def __init__(self, R, baseline_wheel2wheel, poseEstimation):
         x_prev = y_prev = theta_prev = 0
-        x_prev_ = y_prev_ = theta_prev_ = []
+        x_prev_ = []
+        y_prev_ = []
+        theta_prev_ = []
         
-        for _ in range(0,20):
+        for _ in range(0,35):
             x_prev_.append(x_prev) 
             y_prev_.append(y_prev)
             theta_prev_.append(theta_prev)
@@ -39,8 +41,8 @@ class UnitTestOdometry:
                                             x_prev,
                                             y_prev,
                                             theta_prev,
-                                            2,
-                                            4)
+                                            0.087266389,
+                                            0.698131111)
         self.plot(x_prev_, y_prev_, theta_prev_)
         
     def plot(self,x,y,theta):
