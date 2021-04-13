@@ -1,0 +1,8 @@
+prefix=/code/solution/devel/.private/controller_pkg
+
+Name: controller_pkg
+Description: Description of controller_pkg
+Version: 1.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

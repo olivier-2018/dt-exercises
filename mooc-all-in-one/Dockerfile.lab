@@ -1,0 +1,6 @@
+FROM duckietown/dt-gui-tools:daffy-amd64
+
+RUN pip3 install -U \
+    aido-protocols-daffy
+
+CMD ["dt-launcher-jupyter"]

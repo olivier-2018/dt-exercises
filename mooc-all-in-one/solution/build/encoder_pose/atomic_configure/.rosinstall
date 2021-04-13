@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /code/solution/devel/.private/encoder_pose/setup.sh
