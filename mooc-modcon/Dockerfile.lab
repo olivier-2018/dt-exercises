@@ -3,4 +3,7 @@ FROM duckietown/dt-gui-tools:daffy-amd64
 RUN pip3 install -U \
     aido-protocols-daffy
 
+COPY assets/vnc/image/root/Desktop/exercise-odometry.desktop /root/Desktop/
+COPY assets/vnc/image/root/Desktop/exercise-odometry.png /root/.icons/
+
 CMD ["dt-launcher-jupyter"]
