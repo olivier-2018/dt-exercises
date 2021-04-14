@@ -1,26 +1,23 @@
 import numpy as np
-
-########### THIS IS JUST AN EXAMPLE ON HOW TO READ THE DATA.
-# This data structure doesn't represent the real way the ROS messages are created,
-# but it wants to give you an idea on how to access the data.
-class stamp_struct: 
-    secs=0
-    nsecs=0
-
-class encoder_struct:
-    header= ''
-    seq= 5594
-    stamp= stamp_struct()
-    frame_id= ""
-    data= 13
-    resolution=135
-    type = 1
         
 class UnitTestMessage:
-            
     def __init__(self, callback):
-
-        encoder_msg = encoder_struct()
+        from duckietown_msgs.msg import WheelEncoderStamped 
+        from std_msgs.msg import Header
+        import time
+        
+        
+        header = Header()
+        header.frame_id = f"agent/left_wheel_axis"
+        header.stamp.secs = 0  # rospy.Time.now() is the correct stamp, anyway this works only when a node is initialized
+        header.stamp.nsecs = 0
+        
+        encoder_msg=WheelEncoderStamped(
+            header=header,
+            data=13,
+            resolution=135,
+            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+        )
         
         callback(encoder_msg)
 
@@ -60,14 +57,17 @@ class UnitTestOdometry:
     
 
 class UnitTestPID:
-    def __init__(self, PIDController, v_0):
-        self.R = 0.0318
-        self.L = 0.08
-        self.theta_prev = 0
+    def __init__(self, R, baseline, v_0, gain, trim, PIDController):
+        self.R = R
+        self.L = baseline
         self.PIDController = PIDController
-        self.v_0 = v_0
         self.delta_t = 0.2
         self.t1 = np.arange(0.0, 10.0, self.delta_t)
+        self.theta_prev = 0
+        self.v_0 = v_0
+        
+        self.k_r_inv = (gain + trim) / 27.0
+        self.k_l_inv = (gain - trim) / 27.0
 
 
     def test(self):
@@ -87,14 +87,44 @@ class UnitTestPID:
 
             self.v_0 = u[0]
             omega = u[1]
+        
+        self.plot(theta_hat_, err_,"No noise on theta","Time (s)","Theta (Degree)")
+        
+        self.theta_prev = 0
+        omega = 0
+        prev_e = 0
+        prev_int = 0
+        
+        err_ = []
+        theta_hat_ = []
+        
+        for _ in self.t1:
+            theta_hat = self.sim_noise(omega, self.v_0, self.delta_t)
+            theta_hat_.append(theta_hat)
+            err_.append(prev_e)
+            u, prev_e, prev_int = self.PIDController(
+                self.v_0, theta_hat, prev_e, prev_int, self.delta_t)
 
-        self.plot(theta_hat_, err_)
+            self.v_0 = u[0]
+            omega = u[1]
 
-    def plot(self, theta_hat_, err_):
+        self.plot(theta_hat_, err_,"Theta with noise","Time (s)","Theta (Degree)")
+
+    def plot(self, theta_hat_, err_, title, x_label, y_label):
         import matplotlib.pyplot as plt
-
-        plt.axis([0, 10, np.min([np.min(theta_hat_),np.min(err_)]), np.max([np.max(theta_hat_),np.max(err_)])])
-        plt.plot(self.t1, (theta_hat_), 'r--', self.t1, (err_), 'b')
+        
+        plt.title(title)
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        theta_hat_deg=[]
+        for el in theta_hat_:
+            theta_hat_deg.append(el*180/np.pi)
+        err_deg=[]
+        for el in err_:
+            err_deg.append(el*180/np.pi)
+            
+        plt.axis([0, 10, np.min([np.min(theta_hat_deg),np.min(err_deg)]), np.max([np.max(theta_hat_deg),np.max(err_deg)])])
+        plt.plot(self.t1, (theta_hat_deg), 'r--', self.t1, (err_deg), 'b')
         plt.legend(['Theta','error'])
         plt.show()
 
@@ -107,3 +137,16 @@ class UnitTestPID:
         self.theta_prev = self.theta_prev + self.R * \
             (delta_phi_right-delta_phi_left)/(2*self.L)
         return self.theta_prev
+    
+    def sim_noise(self, omega, v, time):
+        delta_phi_left = time*(v-omega*self.L)/self.R
+        delta_phi_right = time*(v+omega*self.L)/self.R
+
+        self.theta_prev = self.theta_prev + self.R * \
+            (delta_phi_right-delta_phi_left)/(2*self.L)
+        return self.theta_prev+np.random.normal(0, 0.017453278) # 1 degree of variance
+    
+    def wheel_inputs(self):
+        u_r = omega_r * k_r_inv
+        # u_l = (gain - trim) (v - 0.5 * omega * b) / (r * k_l)
+        u_l = omega_l * k_l_inv
