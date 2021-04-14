@@ -58,14 +58,13 @@ class UnitTestOdometry:
 
 class UnitTestHeadingPID:
     def __init__(self, R, baseline, v_0, gain, trim, PIDController):
-        self.R = R
-        self.L = baseline
-        self.PIDController = PIDController
-        self.delta_t = 0.2
-        self.t1 = np.arange(0.0, 10.0, self.delta_t)
-        self.theta_prev = 0
-        self.v_0 = v_0
-        
+        self.R = R # wheel radius
+        self.L = baseline # distance from wheel to wheel (notice, this is 2*L as defined in the theory)
+        self.v_0 = v_0 # fixed robot linear speed
+        self.PIDController = PIDController # controller being used
+        self.delta_t = 0.01 # unit test simulation time stamp
+        self.t1 = np.arange(0.0, 10.0, self.delta_t) # time vector
+        self.theta_prev = 0 # theta initial condition of the Duckiebot
         self.k_r_inv = (gain + trim) / 27.0
         self.k_l_inv = (gain - trim) / 27.0
 
@@ -81,7 +80,7 @@ class UnitTestHeadingPID:
         u_l_ = []
 
         for _ in self.t1:
-            theta_hat,u_r,u_l = self.sim(omega, self.v_0, self.delta_t)
+            theta_hat, u_r, u_l = self.sim(omega, self.v_0, self.delta_t)
             
             theta_hat_.append(theta_hat)
             err_.append(prev_e)
@@ -174,7 +173,7 @@ class UnitTestHeadingPID:
         self.theta_prev = self.theta_prev + self.R * \
             (delta_phi_right-delta_phi_left)/(self.L)
         
-        u_r,u_l=self.wheel_inputs(omega_r, omega_l)
+        u_r, u_l = self.wheel_inputs(omega_r, omega_l)
         
         return self.theta_prev,u_r,u_l
     
@@ -184,9 +183,12 @@ class UnitTestHeadingPID:
         
         delta_phi_left = time*omega_l
         delta_phi_right = time*omega_r
+        
+        measurement_noise_variance_deg = 1 # variance of the additive measurement noise
+        measurement_noise = np.random.normal(0, np.deg2rad(measurement_noise_variance_deg) )
 
         self.theta_prev = self.theta_prev + self.R * \
-            (delta_phi_right-delta_phi_left)/(self.L) + np.random.normal(0, 0.017453278) # 1 degree of variance
+            (delta_phi_right-delta_phi_left)/(self.L) + measurement_noise
         
         u_r,u_l=self.wheel_inputs(omega_r, omega_l)
         
