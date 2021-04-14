@@ -33,9 +33,9 @@ ros: true
 files:
   - notebook:
       target_dir: "solution/src/encoder_pose/src"
-      input_file: "solution/odometry_activity.ipynb"
+      input_file: "solution/05-odometry-activity.ipynb"
   - notebook:
       target_dir: "solution/src/encoder_pose/src"
-      input_file: "solution/PID_controller.ipynb"
+      input_file: "solution/06-PID-controller.ipynb"
   
   

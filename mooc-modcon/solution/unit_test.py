@@ -24,8 +24,8 @@ class UnitTestMessage:
 
 class UnitTestOdometry:
     def __init__(self, R, baseline_wheel2wheel, poseEstimation):
-        x_prev = y_prev = theta_prev = 0
-        x_prev_ = []
+        x_prev = y_prev = theta_prev = 0 # initial conditions
+        x_prev_ = [] # to store the estimates, so we can plot them
         y_prev_ = []
         theta_prev_ = []
         
@@ -62,17 +62,17 @@ class UnitTestHeadingPID:
         self.L = baseline # distance from wheel to wheel (notice, this is 2*L as defined in the theory)
         self.v_0 = v_0 # fixed robot linear speed
         self.PIDController = PIDController # controller being used
-        self.delta_t = 0.01 # unit test simulation time stamp
+        self.delta_t = 0.02 # unit test simulation time step
         self.t1 = np.arange(0.0, 10.0, self.delta_t) # time vector
         self.theta_prev = 0 # theta initial condition of the Duckiebot
-        self.k_r_inv = (gain + trim) / 27.0
+        self.k_r_inv = (gain + trim) / 27.0 # motor constants (adjusted to simulte hardware setup)
         self.k_l_inv = (gain - trim) / 27.0
 
 
     def test(self):
-        omega = 0
-        prev_e = 0
-        prev_int = 0
+        omega = 0 # initial command
+        prev_e = 0 # initializing error (TODO, should be theta_ref - theta_0)
+        prev_int = 0 # initializing integral term
 
         err_ = []
         theta_hat_ = []
@@ -163,7 +163,7 @@ class UnitTestHeadingPID:
 
 
 
-    def sim(self, omega, v, time):
+    def sim(self, omega, v, time): #
         omega_l = (v-0.5*omega*self.L)/self.R
         omega_r = (v+0.5*omega*self.L)/self.R
         
