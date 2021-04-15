@@ -71,7 +71,7 @@ class EncoderPoseNode(DTROS):
 
 
         _ = rospy.Subscriber(
-            '/activity_name',
+            f'/{self.veh}/activity_name',
             String,
             self.cbActivity,
             queue_size=1
@@ -115,15 +115,15 @@ class EncoderPoseNode(DTROS):
 
         self.log("Initialized!")
 
-    def cbActivity(self,msg):
+    def cbActivity(self, msg):
         """
         change activity accoring to the param.
         """
         # Reset
-        self.PID_ACTIVITY=False
-        self.publishCmd([0,0])
-        self.ODOMETRY_ACTIVITY=False
-        self.PID_EXERCISE=False
+        #self.PID_ACTIVITY=False
+        #self.publishCmd([0,0])
+        # self.ODOMETRY_ACTIVITY=False
+        # self.PID_EXERCISE=False
 
         print()
         print(f"Received activity {msg.data}")
