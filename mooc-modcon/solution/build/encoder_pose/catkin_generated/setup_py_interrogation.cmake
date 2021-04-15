@@ -1,7 +1,0 @@
-set(encoder_pose_SETUP_PY_SETUP_MODULE "distutils.core")
-set(encoder_pose_SETUP_PY_VERSION "1.0.0")
-set(encoder_pose_SETUP_PY_SCRIPTS "")
-set(encoder_pose_SETUP_PY_PACKAGES "encoder_pose")
-set(encoder_pose_SETUP_PY_PACKAGE_DIRS "include/encoder_pose")
-set(encoder_pose_SETUP_PY_MODULES "")
-set(encoder_pose_SETUP_PY_MODULE_DIRS "")
