@@ -10,6 +10,7 @@ from std_msgs.msg import String
 
 import odometry_activity
 import PID_controller
+import PID_controller_exercise
 
 import time
 
@@ -57,14 +58,16 @@ class EncoderPoseNode(DTROS):
         self.prev_e = 0
         self.prev_int = 0
         self.time = 0
-        self.v_0 = 1.0
+        self.v_0 = 0.2
+        self.y_ref=-0.10
 
         # nominal R and L:
         self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 100)
-        self.L = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
+        self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
 
         self.ODOMETRY_ACTIVITY=False
         self.PID_ACTIVITY=False
+        self.PID_EXERCISE=False
 
 
         _ = rospy.Subscriber(
@@ -120,6 +123,7 @@ class EncoderPoseNode(DTROS):
         self.PID_ACTIVITY=False
         self.publishCmd([0,0])
         self.ODOMETRY_ACTIVITY=False
+        self.PID_EXERCISE=False
 
         print()
         print(f"Received activity {msg.data}")
@@ -127,6 +131,7 @@ class EncoderPoseNode(DTROS):
         
         self.ODOMETRY_ACTIVITY=msg.data=="odometry"
         self.PID_ACTIVITY=msg.data=="pid"
+        self.PID_EXERCISE=msg.data=="pid_exercise"
 
 
     def cbLeftEncoder(self, encoder_msg):
@@ -136,7 +141,7 @@ class EncoderPoseNode(DTROS):
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
         # Do nothing if the activity is not set
-        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY) :
+        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE) :
             return
 
 
@@ -160,7 +165,7 @@ class EncoderPoseNode(DTROS):
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
         # Do nothing if the activity is not set
-        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY) :
+        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE) :
             return
 
         ticks = encoder_msg.data
@@ -183,29 +188,13 @@ class EncoderPoseNode(DTROS):
                 ~/encoder_localization (:obj:`PoseStamped`): Duckiebot pose.
         """
         self.x_curr, self.y_curr, self.theta_curr = odometry_activity.poseEstimation(
-            self.R, self.L,
+            self.R, self.baseline,
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
         self.x_prev = self.x_curr
         self.y_prev = self.y_curr
         self.theta_prev = self.theta_curr
-
-        pose = PoseStamped()
-
-        # pose.header.stamp = rospy.Time.now()
-        # pose.header.frame_id = 'map'
-
-        # pose.pose.position.x = self.x_curr
-        # pose.pose.position.y = self.y_curr
-        # pose.pose.position.z = 0
-
-        # pose.pose.orientation.x = 0
-        # pose.pose.orientation.y = 0
-        # pose.pose.orientation.z = np.sin(self.theta_curr/2)
-        # pose.pose.orientation.w = np.cos(self.theta_curr/2)
-
-        # self.db_estimated_pose.publish(pose)
 
         odom = Odometry()
         odom.header.frame_id = "map"
@@ -220,11 +209,6 @@ class EncoderPoseNode(DTROS):
         odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
         odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
 
-        #odom.pose.covariance = np.diag([1e-2, 1e-2, 1e-2, 1e3, 1e3, 1e-1]).ravel()
-        #odom.twist.twist.linear.x = self._lin_vel
-        #odom.twist.twist.angular.z = self._ang_vel
-        #odom.twist.covariance = np.diag([1e-2, 1e3, 1e3, 1e3, 1e3, 1e-2]).ravel()
-
         self.db_estimated_pose.publish(odom)
         
     def Controller(self, event):
@@ -232,7 +216,7 @@ class EncoderPoseNode(DTROS):
         Calculate theta and perform the control actions given by the PID
         """
         # Do nothing if the PID activity is not set
-        if not self.PID_ACTIVITY :
+        if not (self.PID_ACTIVITY or self.PID_EXERCISE) :
             return
 
         if not self.SIM_STARTED:
@@ -242,13 +226,23 @@ class EncoderPoseNode(DTROS):
 
         self.time = time.time()
 
-        u, self.prev_e, self.prev_int = PID_controller.PIDController(
-            self.v_0,
-            self.theta_curr,
-            self.prev_e,
-            self.prev_int,
-            delta_time
-        )
+        if self.PID_ACTIVITY:
+            u, self.prev_e, self.prev_int = PID_controller.PIDController(
+                self.v_0,
+                self.theta_curr,
+                self.prev_e,
+                self.prev_int,
+                delta_time
+            )
+        elif self.PID_EXERCISE:
+            u, self.prev_e, self.prev_int = PID_controller_exercise.PIDController(
+                self.v_0,
+                self.y_ref,
+                self.y_curr,
+                self.prev_e,
+                self.prev_int,
+                delta_time
+            )
 
         if u == []:
             return
