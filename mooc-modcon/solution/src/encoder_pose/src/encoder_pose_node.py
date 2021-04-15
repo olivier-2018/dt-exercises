@@ -62,8 +62,14 @@ class EncoderPoseNode(DTROS):
         self.y_ref=-0.10
 
         # nominal R and L:
-        self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 100)
-        self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
+        self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 0.0318)
+        self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 0.1)
+
+        print("                    BASELINE ")
+        print(self.baseline)
+
+        print("                    RADIUS ")
+        print(self.R)
 
         self.ODOMETRY_ACTIVITY=False
         self.PID_ACTIVITY=False
@@ -112,6 +118,7 @@ class EncoderPoseNode(DTROS):
 
         self.SIM_STARTED = False
         rospy.Timer(rospy.Duration(0.2), self.Controller)
+        rospy.Timer(rospy.Duration(0.1), self.posePublisher)
 
         self.log("Initialized!")
 
@@ -154,7 +161,7 @@ class EncoderPoseNode(DTROS):
         self.delta_phi_left, self.left_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.left_tick_prev)
         # compute the new pose
-        self.posePublisher()
+        # self.posePublisher()
         self.SIM_STARTED = True
 
 
@@ -177,16 +184,19 @@ class EncoderPoseNode(DTROS):
         self.delta_phi_right, self.right_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.right_tick_prev)
         # compute the new pose
-        self.posePublisher()
+        # self.posePublisher()
         self.SIM_STARTED = True
 
-    def posePublisher(self):
+    def posePublisher(self, event):
         """
             Publish the pose of the Duckiebot given by the kinematic model
                 using the encoders.
             Publish:
                 ~/encoder_localization (:obj:`PoseStamped`): Duckiebot pose.
         """
+        if not self.SIM_STARTED:
+            return
+
         self.x_curr, self.y_curr, self.theta_curr = odometry_activity.poseEstimation(
             self.R, self.baseline,
             self.x_prev, self.y_prev, self.theta_prev,
@@ -208,6 +218,11 @@ class EncoderPoseNode(DTROS):
         odom.pose.pose.orientation.y = 0
         odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
         odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
+        print("              ODOMETRY             ")
+        print(f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
+        print(f"Delta Ticks left : {self.delta_phi_left}   Delta Ticks right : {self.delta_phi_right}")
+        print(f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
+        print()
 
         self.db_estimated_pose.publish(odom)
         
