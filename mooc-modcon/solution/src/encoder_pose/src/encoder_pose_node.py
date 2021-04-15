@@ -116,9 +116,15 @@ class EncoderPoseNode(DTROS):
         """
         change activity accoring to the param.
         """
+        # Reset
+        self.PID_ACTIVITY=False
+        self.publishCmd([0,0])
+        self.ODOMETRY_ACTIVITY=False
+
         print()
         print(f"Received activity {msg.data}")
         print()
+        
         self.ODOMETRY_ACTIVITY=msg.data=="odometry"
         self.PID_ACTIVITY=msg.data=="pid"
 
