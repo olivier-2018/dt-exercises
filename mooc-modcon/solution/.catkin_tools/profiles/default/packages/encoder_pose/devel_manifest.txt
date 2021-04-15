@@ -1,0 +1,6 @@
+encoder_pose
+/code/solution/devel/.private/encoder_pose/cmake.lock /code/solution/devel/./cmake.lock
+/code/solution/devel/.private/encoder_pose/share/encoder_pose/cmake/encoder_poseConfig-version.cmake /code/solution/devel/share/encoder_pose/cmake/encoder_poseConfig-version.cmake
+/code/solution/devel/.private/encoder_pose/share/encoder_pose/cmake/encoder_poseConfig.cmake /code/solution/devel/share/encoder_pose/cmake/encoder_poseConfig.cmake
+/code/solution/devel/.private/encoder_pose/lib/pkgconfig/encoder_pose.pc /code/solution/devel/lib/pkgconfig/encoder_pose.pc
+/code/solution/devel/.private/encoder_pose/lib/python3/dist-packages/encoder_pose/__init__.py /code/solution/devel/lib/python3/dist-packages/encoder_pose/__init__.py
