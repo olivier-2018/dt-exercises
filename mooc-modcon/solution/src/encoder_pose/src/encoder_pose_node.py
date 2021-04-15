@@ -6,12 +6,12 @@ from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import WheelEncoderStamped, Twist2DStamped
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
+from std_msgs.msg import String
 
 import odometry_activity
 import PID_controller
 
 import time
-
 
 class EncoderPoseNode(DTROS):
     """
@@ -63,17 +63,20 @@ class EncoderPoseNode(DTROS):
         self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 100)
         self.L = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 100)
 
-        # Construct publishers
-        self.db_estimated_pose = rospy.Publisher(
-            f'/{self.veh}/encoder_localization',
-            Odometry,
-            queue_size=1,
-            dt_topic_type=TopicType.LOCALIZATION
+        self.ODOMETRY_ACTIVITY=False
+        self.PID_ACTIVITY=False
+
+
+        _ = rospy.Subscriber(
+            '/activity_name',
+            String,
+            self.cbActivity,
+            queue_size=1
         )
 
         # Wheel encoders subscribers:
         left_encoder_topic = f'/{self.veh}/left_wheel_encoder_node/tick'
-        self.enco_left = rospy.Subscriber(
+        _ = rospy.Subscriber(
             left_encoder_topic,
             WheelEncoderStamped,
             self.cbLeftEncoder,
@@ -81,11 +84,19 @@ class EncoderPoseNode(DTROS):
         )
 
         right_encoder_topic = f'/{self.veh}/right_wheel_encoder_node/tick'
-        self.enco_right = rospy.Subscriber(
+        _ = rospy.Subscriber(
             right_encoder_topic,
             WheelEncoderStamped,
             self.cbRightEncoder,
             queue_size=1
+        )
+
+        # Construct publishers
+        self.db_estimated_pose = rospy.Publisher(
+            f'/{self.veh}/encoder_localization',
+            Odometry,
+            queue_size=1,
+            dt_topic_type=TopicType.LOCALIZATION
         )
 
         car_cmd_topic = f'/{self.veh}/joy_mapper_node/car_cmd'
@@ -97,9 +108,20 @@ class EncoderPoseNode(DTROS):
         )
 
         self.SIM_STARTED = False
-        rospy.Timer(rospy.Duration(0.2), self.CalcTheta)
+        rospy.Timer(rospy.Duration(0.2), self.Controller)
 
         self.log("Initialized!")
+
+    def cbActivity(self,msg):
+        """
+        change activity accoring to the param.
+        """
+        print()
+        print(f"Received activity {msg.data}")
+        print()
+        self.ODOMETRY_ACTIVITY=msg.data=="odometry"
+        self.PID_ACTIVITY=msg.data=="pid"
+
 
     def cbLeftEncoder(self, encoder_msg):
         """
@@ -107,6 +129,11 @@ class EncoderPoseNode(DTROS):
             Args:
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
+        # Do nothing if the activity is not set
+        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY) :
+            return
+
+
         ticks = encoder_msg.data
 
         if self.left_tick_prev == "":
@@ -119,12 +146,17 @@ class EncoderPoseNode(DTROS):
         self.posePublisher()
         self.SIM_STARTED = True
 
+
     def cbRightEncoder(self, encoder_msg):
         """
             Wheel encoder callback, the rotation of the wheel.
             Args:
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
+        # Do nothing if the activity is not set
+        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY) :
+            return
+
         ticks = encoder_msg.data
 
         if self.right_tick_prev == "":
@@ -189,10 +221,14 @@ class EncoderPoseNode(DTROS):
 
         self.db_estimated_pose.publish(odom)
         
-    def CalcTheta(self, event):
+    def Controller(self, event):
         """
         Calculate theta and perform the control actions given by the PID
         """
+        # Do nothing if the PID activity is not set
+        if not self.PID_ACTIVITY :
+            return
+
         if not self.SIM_STARTED:
             return
 

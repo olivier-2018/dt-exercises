@@ -1,7 +1,0 @@
-set(controller_pkg_SETUP_PY_SETUP_MODULE "distutils.core")
-set(controller_pkg_SETUP_PY_VERSION "1.0.0")
-set(controller_pkg_SETUP_PY_SCRIPTS "")
-set(controller_pkg_SETUP_PY_PACKAGES "controller_pkg")
-set(controller_pkg_SETUP_PY_PACKAGE_DIRS "include/controller_pkg")
-set(controller_pkg_SETUP_PY_MODULES "")
-set(controller_pkg_SETUP_PY_MODULE_DIRS "")

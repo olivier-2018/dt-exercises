@@ -1,8 +1,0 @@
-prefix=/code/solution/install
-
-Name: wheels_calibration
-Description: Description of wheels_calibration
-Version: 1.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
