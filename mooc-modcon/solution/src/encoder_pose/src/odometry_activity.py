@@ -23,10 +23,12 @@ def DeltaPhi(encoder_msg, prev_ticks):
 
     rotation_wheel = alpha*delta_ticks
     
+    print(f"Delta ticks: {delta_ticks}")
+    
     return rotation_wheel, ticks
 
 
-# In[5]:
+# In[2]:
 
 
 # The function written in this cell will actually be ran on your robot (sim or real). 
@@ -51,23 +53,23 @@ def poseEstimation( R, # radius of wheel (assumed identical)
             x_curr, y_curr, theta_curr (:double: values)
     """
     
-    # x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
-    # y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
-    # theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/baseline_wheel2wheel
+    x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
+    y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
+    theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/baseline_wheel2wheel
     
-    w = [R, R / baseline_wheel2wheel, 1]
-    x = np.array(
-        [
-            [
-                (delta_phi_left + delta_phi_right) * np.cos(theta_prev) / 2,
-                (delta_phi_left + delta_phi_right) * np.sin(theta_prev) / 2,
-                0,
-            ],
-            [0, 0, (delta_phi_right - delta_phi_left)],
-            [x_prev, y_prev, theta_prev],
-        ]
-    )
-    x_curr, y_curr, theta_curr = np.array(w).dot(x)
+  #   w = [R, R / baseline_wheel2wheel, 1]
+  #   x = np.array(
+  #      [
+  #          [
+  #              (delta_phi_left + delta_phi_right) * np.cos(theta_prev) / 2,
+  #              (delta_phi_left + delta_phi_right) * np.sin(theta_prev) / 2,
+  #              0,
+  #          ],
+  #          [0, 0, (delta_phi_right - delta_phi_left)],
+  #         [x_prev, y_prev, theta_prev],
+  #      ]
+  #  )
+  #  x_curr, y_curr, theta_curr = np.array(w).dot(x)
 
     return x_curr, y_curr, theta_curr
 

@@ -65,11 +65,11 @@ class EncoderPoseNode(DTROS):
         self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 0.0318)
         self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 0.1)
 
-        print("                    BASELINE ")
-        print(self.baseline)
-
-        print("                    RADIUS ")
-        print(self.R)
+#        print("                    BASELINE ")
+#        print(self.baseline)
+#
+#        print("                    RADIUS ")
+#        print(self.R)
 
         self.ODOMETRY_ACTIVITY=False
         self.PID_ACTIVITY=False
@@ -135,7 +135,7 @@ class EncoderPoseNode(DTROS):
         print()
         print(f"Received activity {msg.data}")
         print()
-        
+
         self.ODOMETRY_ACTIVITY=msg.data=="odometry"
         self.PID_ACTIVITY=msg.data=="pid"
         self.PID_EXERCISE=msg.data=="pid_exercise"
@@ -152,12 +152,11 @@ class EncoderPoseNode(DTROS):
             return
 
 
-        ticks = encoder_msg.data
-
         if self.left_tick_prev == "":
+            ticks = encoder_msg.data
             self.left_tick_prev = ticks
             return
-
+# TEST
         self.delta_phi_left, self.left_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.left_tick_prev)
         # compute the new pose
@@ -175,9 +174,8 @@ class EncoderPoseNode(DTROS):
         if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE) :
             return
 
-        ticks = encoder_msg.data
-
         if self.right_tick_prev == "":
+            ticks = encoder_msg.data
             self.right_tick_prev = ticks
             return
 
@@ -218,14 +216,16 @@ class EncoderPoseNode(DTROS):
         odom.pose.pose.orientation.y = 0
         odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
         odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
+
         print("              ODOMETRY             ")
+        print(f"Baseline : {self.baseline}   R: {self.R}")
         print(f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
-        print(f"Delta Ticks left : {self.delta_phi_left}   Delta Ticks right : {self.delta_phi_right}")
+        print(f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
         print(f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
         print()
 
         self.db_estimated_pose.publish(odom)
-        
+
     def Controller(self, event):
         """
         Calculate theta and perform the control actions given by the PID
@@ -272,7 +272,7 @@ class EncoderPoseNode(DTROS):
 
         Args:
             omega (:obj:`double`): omega for the control action.
-        """       
+        """
 
         car_control_msg = Twist2DStamped()
         car_control_msg.header.stamp = rospy.Time.now()
