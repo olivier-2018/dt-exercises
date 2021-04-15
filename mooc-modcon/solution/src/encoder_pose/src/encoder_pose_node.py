@@ -200,6 +200,9 @@ class EncoderPoseNode(DTROS):
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
+        # Calculate new odometry only when new data from encoders arrives
+        self.delta_phi_left=self.delta_phi_right=0
+
         self.x_prev = self.x_curr
         self.y_prev = self.y_curr
         self.theta_prev = self.theta_curr
