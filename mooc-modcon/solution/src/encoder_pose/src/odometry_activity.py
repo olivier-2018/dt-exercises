@@ -13,11 +13,11 @@ def DeltaPhi(encoder_msg, prev_ticks):
             rotation_wheel (double) Rotation of the wheel
             ticks (int) current number of ticks
     """
-    ticks = msg_encoder.data
+    ticks = encoder_msg.data
 
     delta_ticks = ticks-prev_ticks
 
-    N_tot = msg_encoder.resolution
+    N_tot = encoder_msg.resolution
 
     alpha = 2*np.pi/N_tot
 

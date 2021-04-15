@@ -6,15 +6,17 @@ class UnitTestMessage:
         from std_msgs.msg import Header
         import time
         
+        # creating a dummy wheel encoder message to allow testing how to read fields
         
         header = Header()
+        header.seq = 372
+        header.stamp.secs = 1618436796  # rospy.Time.now() is the correct stamp, anyway this works only when a node is initialized
+        header.stamp.nsecs = 55785179
         header.frame_id = f"agent/left_wheel_axis"
-        header.stamp.secs = 0  # rospy.Time.now() is the correct stamp, anyway this works only when a node is initialized
-        header.stamp.nsecs = 0
         
         encoder_msg=WheelEncoderStamped(
             header=header,
-            data=13,
+            data=4,
             resolution=135,
             type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
         )
