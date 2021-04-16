@@ -12,7 +12,10 @@ import odometry_activity
 import PID_controller
 import PID_controller_exercise
 
+import os
+import yaml
 import time
+
 
 class EncoderPoseNode(DTROS):
     """
@@ -58,20 +61,26 @@ class EncoderPoseNode(DTROS):
         self.prev_int = 0
         self.time = 0
         self.v_0 = 0.2
-        self.y_ref=-0.10
+        self.y_ref = -0.10
 
         # nominal R and L:
-        self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 0.001)
-        self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 0.001)
+        self.R = 0.0318
+        self.baseline = 0.1
+        self.read_params_from_calibration_file()
+        # self.R = -1
+        # self.baseline = -1
+        # while self.R < 0 or self.baseline < 0:
+        #     self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', -1)
+        #     self.baseline = rospy.get_param(
+        #         f'/{self.veh}/kinematics_node/baseline', -1)
 
-        self.AIDO_eval=rospy.get_param(f'/{self.veh}/AIDO_eval',False)
+        self.AIDO_eval = rospy.get_param(f'/{self.veh}/AIDO_eval', False)
         print(f"AIDO EVAL VAR: {self.AIDO_eval}")
-        self.ODOMETRY_ACTIVITY=False
-        self.PID_ACTIVITY=False
-        self.PID_EXERCISE=False
+        self.ODOMETRY_ACTIVITY = False
+        self.PID_ACTIVITY = False
+        self.PID_EXERCISE = False
         if self.AIDO_eval:
-            self.PID_EXERCISE=True
-
+            self.PID_EXERCISE = True
 
         _ = rospy.Subscriber(
             f'/{self.veh}/activity_name',
@@ -124,19 +133,18 @@ class EncoderPoseNode(DTROS):
         change activity accoring to the param.
         """
         # Reset
-        self.PID_ACTIVITY=False
-        self.publishCmd([0,0])
-        self.ODOMETRY_ACTIVITY=False
-        self.PID_EXERCISE=False
+        self.PID_ACTIVITY = False
+        self.publishCmd([0, 0])
+        self.ODOMETRY_ACTIVITY = False
+        self.PID_EXERCISE = False
 
         print()
         print(f"Received activity {msg.data}")
         print()
 
-        self.ODOMETRY_ACTIVITY=msg.data=="odometry"
-        self.PID_ACTIVITY=msg.data=="pid"
-        self.PID_EXERCISE=msg.data=="pid_exercise"
-
+        self.ODOMETRY_ACTIVITY = msg.data == "odometry"
+        self.PID_ACTIVITY = msg.data == "pid"
+        self.PID_EXERCISE = msg.data == "pid_exercise"
 
     def cbLeftEncoder(self, encoder_msg):
         """
@@ -145,9 +153,8 @@ class EncoderPoseNode(DTROS):
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
         # Do nothing if the activity is not set
-        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE) :
+        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE):
             return
-
 
         if self.left_tick_prev == "":
             ticks = encoder_msg.data
@@ -160,7 +167,6 @@ class EncoderPoseNode(DTROS):
         # self.posePublisher()
         self.SIM_STARTED = True
 
-
     def cbRightEncoder(self, encoder_msg):
         """
             Wheel encoder callback, the rotation of the wheel.
@@ -168,7 +174,7 @@ class EncoderPoseNode(DTROS):
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
         # Do nothing if the activity is not set
-        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE) :
+        if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE):
             return
 
         if self.right_tick_prev == "":
@@ -198,33 +204,40 @@ class EncoderPoseNode(DTROS):
             self.delta_phi_left, self.delta_phi_right)
 
         # Calculate new odometry only when new data from encoders arrives
-        self.delta_phi_left=self.delta_phi_right=0
+        self.delta_phi_left = self.delta_phi_right = 0
 
         # Current estimate becomes previous estimate at next iteration
         self.x_prev = self.x_curr
         self.y_prev = self.y_curr
         self.theta_prev = self.theta_curr
 
-        #Creating message to plot pose in RVIZ
+        # Creating message to plot pose in RVIZ
         odom = Odometry()
         odom.header.frame_id = "map"
         odom.header.stamp = rospy.Time.now()
 
-        odom.pose.pose.position.x = self.x_curr # x position - estimate
-        odom.pose.pose.position.y = self.y_curr # y position - estimate
-        odom.pose.pose.position.z = 0 # z position - no flying allowed in Duckietown
+        odom.pose.pose.position.x = self.x_curr  # x position - estimate
+        odom.pose.pose.position.y = self.y_curr  # y position - estimate
+        odom.pose.pose.position.z = 0  # z position - no flying allowed in Duckietown
 
-        odom.pose.pose.orientation.x = 0 # these are quaternions - stuff for a different course!
-        odom.pose.pose.orientation.y = 0 # these are quaternions - stuff for a different course!
-        odom.pose.pose.orientation.z = np.sin(self.theta_curr/2) # these are quaternions - stuff for a different course!
-        odom.pose.pose.orientation.w = np.cos(self.theta_curr/2) # these are quaternions - stuff for a different course!
+        # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.x = 0
+        # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.y = 0
+        # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
+        # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
 
         # Printing to screen for debugging purposes
         print("              ODOMETRY             ")
         print(f"Baseline : {self.baseline}   R: {self.R}")
-        print(f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
-        print(f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
-        print(f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
+        print(
+            f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
+        print(
+            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
+        print(
+            f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
         print()
 
         self.db_estimated_pose.publish(odom)
@@ -234,7 +247,7 @@ class EncoderPoseNode(DTROS):
         Calculate theta and perform the control actions given by the PID
         """
         # Do nothing if the PID activity is not set
-        if not (self.PID_ACTIVITY or self.PID_EXERCISE) :
+        if not (self.PID_ACTIVITY or self.PID_EXERCISE):
             return
 
         if not self.SIM_STARTED:
@@ -270,6 +283,7 @@ class EncoderPoseNode(DTROS):
     #
     # Pose estimation is the function that is created by the user.
     #
+
     def publishCmd(self, u):
         """Publishes a car command message.
 
@@ -287,6 +301,36 @@ class EncoderPoseNode(DTROS):
 
     def onShutdown(self):
         super(EncoderPoseNode, self).onShutdown()
+
+    def read_params_from_calibration_file(self):
+        """
+        Reads the saved parameters from `/data/config/calibrations/kinematics/DUCKIEBOTNAME.yaml`
+        or uses the default values if the file doesn't exist. Adjsuts the ROS paramaters for the
+        node with the new values.
+        """
+        # Check file existence
+        cali_file_folder = '/data/config/calibrations/kinematics/'
+        fname = cali_file_folder + self.veh + ".yaml"
+        # Use the default values from the config folder if a robot-specific file does not exist.
+        if not os.path.isfile(fname):
+            fname = cali_file_folder  + "default.yaml"
+            self.logwarn(
+                "Kinematics calibration %s not found! Using default instead." % fname)
+        else:
+            self.readFile(fname)
+    
+    def readFile(self,fname):
+        with open(fname, 'r') as in_file:
+            try:
+                yaml_dict = yaml.load(in_file)
+                print(yaml_dict)
+                self.R=yaml_dict['radius']
+                self.baseline=yaml_dict['baseline']
+            except yaml.YAMLError as exc:
+                self.logfatal(
+                    "YAML syntax error. File: %s fname. Exc: %s" % (fname, exc))
+                rospy.signal_shutdown()
+                return
 
 
 if __name__ == "__main__":
