@@ -124,7 +124,10 @@ class EncoderPoseNode(DTROS):
 
         self.SIM_STARTED = False
         rospy.Timer(rospy.Duration(0.2), self.Controller)
-        rospy.Timer(rospy.Duration(0.2), self.posePublisher)
+
+        self.RIGHT_RECEIVED = False
+        self.LEFT_RECEIVED = False
+        #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         self.log("Initialized!")
 
@@ -161,10 +164,12 @@ class EncoderPoseNode(DTROS):
             self.left_tick_prev = ticks
             return
 
-        self.delta_phi_left, self.left_tick_prev = odometry_activity.DeltaPhi(
+        delta_phi_left, self.left_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.left_tick_prev)
+        self.delta_phi_left += delta_phi_left
         # compute the new pose
-        # self.posePublisher()
+        self.LEFT_RECEIVED = True
+        self.posePublisher()
         self.SIM_STARTED = True
 
     def cbRightEncoder(self, encoder_msg):
@@ -182,13 +187,15 @@ class EncoderPoseNode(DTROS):
             self.right_tick_prev = ticks
             return
 
-        self.delta_phi_right, self.right_tick_prev = odometry_activity.DeltaPhi(
+        delta_phi_right, self.right_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.right_tick_prev)
+        self.delta_phi_right += delta_phi_right
         # compute the new pose
-        # self.posePublisher()
+        self.RIGHT_RECEIVED = True
+        self.posePublisher()
         self.SIM_STARTED = True
 
-    def posePublisher(self, event):
+    def posePublisher(self):
         """
             Publish the pose of the Duckiebot given by the kinematic model
                 using the encoders.
@@ -197,6 +204,11 @@ class EncoderPoseNode(DTROS):
         """
         if not self.SIM_STARTED:
             return
+
+        if not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
+            return
+
+        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False
 
         self.x_curr, self.y_curr, self.theta_curr = odometry_activity.poseEstimation(
             self.R, self.baseline,
@@ -313,19 +325,19 @@ class EncoderPoseNode(DTROS):
         fname = cali_file_folder + self.veh + ".yaml"
         # Use the default values from the config folder if a robot-specific file does not exist.
         if not os.path.isfile(fname):
-            fname = cali_file_folder  + "default.yaml"
+            fname = cali_file_folder + "default.yaml"
             self.logwarn(
                 "Kinematics calibration %s not found! Using default instead." % fname)
         else:
             self.readFile(fname)
 
-    def readFile(self,fname):
+    def readFile(self, fname):
         with open(fname, 'r') as in_file:
             try:
                 yaml_dict = yaml.load(in_file)
                 print(yaml_dict)
-                self.R=yaml_dict['radius']
-                self.baseline=yaml_dict['baseline']
+                self.R = yaml_dict['radius']
+                self.baseline = yaml_dict['baseline']
             except yaml.YAMLError as exc:
                 self.logfatal(
                     "YAML syntax error. File: %s fname. Exc: %s" % (fname, exc))
