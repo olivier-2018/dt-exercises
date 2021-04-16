@@ -39,7 +39,6 @@ class EncoderPoseNode(DTROS):
         )
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
-
         # Add the node parameters to the parameters dictionary
         self.delta_phi_left = 0
         self.left_tick_prev = ""
@@ -65,15 +64,13 @@ class EncoderPoseNode(DTROS):
         self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 0.0318)
         self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 0.1)
 
-#        print("                    BASELINE ")
-#        print(self.baseline)
-#
-#        print("                    RADIUS ")
-#        print(self.R)
-
+        self.AIDO_eval=rospy.get_param(f'/{self.veh}/AIDO_eval',False)
+        print(f"AIDO EVAL VAR: {self.AIDO_eval}")
         self.ODOMETRY_ACTIVITY=False
         self.PID_ACTIVITY=False
         self.PID_EXERCISE=False
+        if self.AIDO_eval:
+            self.PID_EXERCISE=True
 
 
         _ = rospy.Subscriber(
@@ -127,10 +124,10 @@ class EncoderPoseNode(DTROS):
         change activity accoring to the param.
         """
         # Reset
-        #self.PID_ACTIVITY=False
-        #self.publishCmd([0,0])
-        # self.ODOMETRY_ACTIVITY=False
-        # self.PID_EXERCISE=False
+        self.PID_ACTIVITY=False
+        self.publishCmd([0,0])
+        self.ODOMETRY_ACTIVITY=False
+        self.PID_EXERCISE=False
 
         print()
         print(f"Received activity {msg.data}")

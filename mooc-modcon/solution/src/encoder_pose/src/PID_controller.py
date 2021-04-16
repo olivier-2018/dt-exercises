@@ -24,7 +24,7 @@ def PIDController(v_0, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as 
     """
     
     # Constant linear velocity of the robot
-    v_0 = 0.15 # TODO: Vincenzo make it tunable online kind of like rosparam set
+    v_0 = 0.2 # TODO: Vincenzo make it tunable online kind of like rosparam set
 
     # Reference angle in radians
     theta_ref = 70*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
