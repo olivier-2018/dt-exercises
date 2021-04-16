@@ -61,8 +61,8 @@ class EncoderPoseNode(DTROS):
         self.y_ref=-0.10
 
         # nominal R and L:
-        self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 0.0318)
-        self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 0.1)
+        self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', 0.001)
+        self.baseline = rospy.get_param(f'/{self.veh}/kinematics_node/baseline', 0.001)
 
         self.AIDO_eval=rospy.get_param(f'/{self.veh}/AIDO_eval',False)
         print(f"AIDO EVAL VAR: {self.AIDO_eval}")
@@ -153,7 +153,7 @@ class EncoderPoseNode(DTROS):
             ticks = encoder_msg.data
             self.left_tick_prev = ticks
             return
-# TEST
+
         self.delta_phi_left, self.left_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.left_tick_prev)
         # compute the new pose
