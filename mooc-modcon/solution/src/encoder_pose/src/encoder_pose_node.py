@@ -124,7 +124,7 @@ class EncoderPoseNode(DTROS):
 
         self.SIM_STARTED = False
         rospy.Timer(rospy.Duration(0.2), self.Controller)
-        rospy.Timer(rospy.Duration(0.02), self.posePublisher)
+        rospy.Timer(rospy.Duration(0.2), self.posePublisher)
 
         self.log("Initialized!")
 
@@ -318,7 +318,7 @@ class EncoderPoseNode(DTROS):
                 "Kinematics calibration %s not found! Using default instead." % fname)
         else:
             self.readFile(fname)
-    
+
     def readFile(self,fname):
         with open(fname, 'r') as in_file:
             try:
