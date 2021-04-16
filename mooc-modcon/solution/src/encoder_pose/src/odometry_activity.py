@@ -1,37 +1,41 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[22]:
 
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your odometry function! 
+
+# DO NOT CHANGE THE NAME OF THIS FUNCTION OR THINGS WILL BREAK
 
 def DeltaPhi(encoder_msg, prev_ticks):
     """
         Args:
-            encoder_msg (ROS encoder message)
-            prev_ticks (Current ticks)
+            encoder_msg: ROS encoder message (ENUM)
+            prev_ticks: Previous tick count from the encoders (int)
         Return:
-            rotation_wheel (double) Rotation of the wheel
-            ticks (int) current number of ticks
+            rotation_wheel: Rotation of the wheel in radians (double)
+            ticks: current number of ticks (int)
     """
     ticks = encoder_msg.data
 
     delta_ticks = ticks-prev_ticks
     
+    # for debugging
     print(f"        DELTA TICKS  {encoder_msg.header.frame_id}")
     print(delta_ticks)
 
-    N_tot = encoder_msg.resolution
+    N_tot = encoder_msg.resolution #total number of ticks per wheel revolution
 
-    alpha = 2*np.pi/N_tot
+    alpha = 2*np.pi/N_tot # rotation per tick in radians 
 
-    rotation_wheel = alpha*delta_ticks
+    delta_phi = alpha*delta_ticks # in radians
     
-    print(f"Delta ticks: {delta_ticks}")
-    
-    return rotation_wheel, ticks
+    return delta_phi, ticks
 
 
-# In[4]:
+# In[13]:
 
 
 # The function written in this cell will actually be ran on your robot (sim or real). 
@@ -41,13 +45,13 @@ import numpy as np
 
 # DO NOT CHANGE THE NAME OF THIS FUNCTION OR THINGS WILL BREAK
 
-def poseEstimation( R, # radius of wheel (assumed identical)
-                    baseline_wheel2wheel, # distance from wheel to wheel (center); 2L of the theory
-                    x_prev, # previous estimate - assume given
-                    y_prev, # previous estimate - assume given
-                    theta_prev, # previous estimate - assume given
-                    delta_phi_left, # previous estimate - assume given
-                    delta_phi_right):
+def poseEstimation( R, # radius of wheel (assumed identical) - this is fixed in simulation, and will be imported from your saved calibration for the physical robot
+                    baseline_wheel2wheel, # distance from wheel to wheel; 2L of the theory
+                    x_prev, # previous x estimate - assume given
+                    y_prev, # previous y estimate - assume given
+                    theta_prev, # previous orientation estimate - assume given
+                    delta_phi_left, # left wheel rotation (rad)
+                    delta_phi_right): # right wheel rotation (rad)
     
     """
         Calculate the current Duckiebot pose using dead reckoning approach.
@@ -56,9 +60,22 @@ def poseEstimation( R, # radius of wheel (assumed identical)
             x_curr, y_curr, theta_curr (:double: values)
     """
     
-    x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
-    y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
-    theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/baseline_wheel2wheel
+    d_left = R * delta_phi_left 
+    d_right = R * delta_phi_right
+    
+    d_A = (d_left + d_right)/2
+    
+    Dtheta = (d_right - d_left)/baseline_wheel2wheel
+    Dx = d_A * np.cos(theta_prev)
+    Dy = d_A * np.sin(theta_prev)
+    
+    x_curr = x_prev + Dx
+    y_curr = y_prev + Dy
+    theta_curr = theta_prev + Dtheta
+    
+    #x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
+    #y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
+    #theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/baseline_wheel2wheel
 
     return x_curr, y_curr, theta_curr
 

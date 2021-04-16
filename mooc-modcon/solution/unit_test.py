@@ -54,7 +54,7 @@ class UnitTestOdometry:
         plt.xlabel("X position")
         plt.ylabel("Y position")
 
-        plt.title( 'Is it a circle?' ) 
+        plt.title( 'Am I a circle?' ) 
         plt.show() 
     
 

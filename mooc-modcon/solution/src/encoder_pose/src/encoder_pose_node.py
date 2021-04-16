@@ -203,23 +203,26 @@ class EncoderPoseNode(DTROS):
         # Calculate new odometry only when new data from encoders arrives
         self.delta_phi_left=self.delta_phi_right=0
 
+        # Current estimate becomes previous estimate at next iteration
         self.x_prev = self.x_curr
         self.y_prev = self.y_curr
         self.theta_prev = self.theta_curr
 
+        #Creating message to plot pose in RVIZ
         odom = Odometry()
         odom.header.frame_id = "map"
         odom.header.stamp = rospy.Time.now()
 
-        odom.pose.pose.position.x = self.x_curr
-        odom.pose.pose.position.y = self.y_curr
-        odom.pose.pose.position.z = 0
+        odom.pose.pose.position.x = self.x_curr # x position - estimate
+        odom.pose.pose.position.y = self.y_curr # y position - estimate
+        odom.pose.pose.position.z = 0 # z position - no flying allowed in Duckietown
 
-        odom.pose.pose.orientation.x = 0
-        odom.pose.pose.orientation.y = 0
-        odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
-        odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
+        odom.pose.pose.orientation.x = 0 # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.y = 0 # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.z = np.sin(self.theta_curr/2) # these are quaternions - stuff for a different course!
+        odom.pose.pose.orientation.w = np.cos(self.theta_curr/2) # these are quaternions - stuff for a different course!
 
+        # Printing to screen for debugging purposes
         print("              ODOMETRY             ")
         print(f"Baseline : {self.baseline}   R: {self.R}")
         print(f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
