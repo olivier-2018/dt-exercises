@@ -124,7 +124,7 @@ class EncoderPoseNode(DTROS):
 
         self.SIM_STARTED = False
         rospy.Timer(rospy.Duration(0.2), self.Controller)
-        rospy.Timer(rospy.Duration(0.1), self.posePublisher)
+        rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         self.log("Initialized!")
 
