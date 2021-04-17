@@ -36,13 +36,13 @@ def PIDController(
 
 
     # error
-    e_y = y_ref - y_hat
+    e_y = 2*y_ref - y_hat
 
     # integral of the error
     e_int_y = prev_int_y + e_y*delta_t
 
     # antiwindup
-    e_int_y = max(min(e_int_y,10),-10)
+    e_int_y = max(min(e_int_y,5),-5)
 
     # derivative of the error
     e_der_y = (e_y - prev_e_y)/delta_t
@@ -50,8 +50,8 @@ def PIDController(
     # PID parameters
 
     Kp_y= 2
-    Ki_y= 1
-    Kd_y= 0.5
+    Ki_y= 0.1
+    Kd_y= 10
     
     # PID controller for omega
     omega = Kp_y*e_y + Ki_y*e_int_y + Kd_y*e_der_y
@@ -59,7 +59,7 @@ def PIDController(
     u = [v_0, omega]
     
     #print(f"\n\nDelta time : {delta_t} \nE : {e_y} \nE int : {e_int_y} \nPrev e : {e_der_y}\nU : {u} \nX_hat : {y_hat} \n")
-    print(f"\n\nDelta time : {delta_t} \nE : {np.rad2deg(e_y)} \nE int : {e_int_y} \nPrev e : {prev_e_y} \nU : {u} \nTheta hat: {np.rad2deg(y_hat)} \n")
+    print(f"\n\nDelta time : {delta_t} \nE : {e_y} \ne_int : {e_int_y} \ne_der : {e_der_y} \nU : {u} \ny_hat: {y_hat} \n")
 
     
     return u, e_y, e_int_y
