@@ -58,10 +58,10 @@ class EncoderPoseNode(DTROS):
         self.theta_curr = 0
 
         self.prev_e = 0 # previous tracking error, starts at 0
-        self.prev_int = [] # previous tracking error integral, starts at 0
+        self.prev_int = 0 # previous tracking error integral, starts at 0
         self.time = 0
-        self.v_0 = [] # 0.15 # fixed robot linear velocity
-        self.y_ref = [] # -0.10
+        self.v_0 = 0.5 # 0.15 # fixed robot linear velocity
+        self.y_ref = -0.1 # -0.10
 
         # nominal R and L:
         self.R = 0.0318
