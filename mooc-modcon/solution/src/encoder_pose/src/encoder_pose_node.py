@@ -275,7 +275,7 @@ class EncoderPoseNode(DTROS):
         if self.PID_ACTIVITY:
             u, self.prev_e, self.prev_int = PID_controller.PIDController(
                 self.v_0,
-                self.theta_curr, # where from?
+                self.theta_curr,
                 self.prev_e,
                 self.prev_int,
                 delta_time

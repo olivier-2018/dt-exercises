@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[23]:
+# In[12]:
 
 
 import numpy as np
@@ -23,15 +23,17 @@ def PIDController(v_0, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as 
         u (:double:) control command for omega and v_0 (constant).
         current_e (:double:) current tracking error.
     """
-    
+
     # Constant linear velocity of the robot
-    v_0 = 0.5 
+    v_0 = 0.5
 
     # Reference angle in radians
     theta_ref = 90*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
-    
+
     # Tracking error
     e = theta_ref - theta_hat
+
+
 
     # integral of the error
     e_int = prev_int + e*delta_t
@@ -50,11 +52,10 @@ def PIDController(v_0, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as 
 
     # PID controller for omega
     omega = Kp*e + Ki*e_int + Kd*e_der
-    
+
     u = [v_0, omega]
-    
-    # print(f"\n\nDelta time : {delta_t} \nE : {e} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta : {theta_hat} \n")
 
-    
+    # print(f"\n\nDelta time : {delta_t} \nE : {e} \nE int : {e_int} \nPrev e : {prev_e}\nU : {u} \nTheta : {theta_hat} \n")
+
+
     return u, e, e_int
-
