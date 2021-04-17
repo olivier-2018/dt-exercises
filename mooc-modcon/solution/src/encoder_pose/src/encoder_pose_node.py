@@ -60,19 +60,15 @@ class EncoderPoseNode(DTROS):
         self.prev_e = 0 # previous tracking error, starts at 0
         self.prev_int = 0 # previous tracking error integral, starts at 0
         self.time = 0
-<<<<<<< HEAD
-        self.v_0 = 0.5 # 0.15 # fixed robot linear velocity
-        self.y_ref = -0.1 # -0.10
-=======
+
         self.v_0 = 0.5 # fixed robot linear velocity
         self.y_ref = -0.10
         self.theta_ref = -90*np.pi/180
->>>>>>> 758f32426edaa7ce544a3bea289cb0d651c1a76b
 
         # nominal R and L:
         self.R = 0.0318
         self.baseline = 0.1
-        self.read_params_from_calibration_file() 
+        self.read_params_from_calibration_file()
 
         # Used for AIDO evaluation
         self.AIDO_eval = rospy.get_param(f'/{self.veh}/AIDO_eval', False)
@@ -285,6 +281,7 @@ class EncoderPoseNode(DTROS):
         self.time = time_now
 
         if self.PID_ACTIVITY:
+            print("PID controller is actually running")
             u, self.prev_e, self.prev_int = PID_controller.PIDController(
                 self.v_0,
                 self.theta_ref,

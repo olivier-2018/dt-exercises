@@ -12,7 +12,7 @@ import numpy as np
 # theta_ref = 70*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
 
 
-def PIDController(v_0, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as input
+def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as input
     """
     Args:
         delta_phi_right (:double:) delta phi right.
@@ -25,10 +25,10 @@ def PIDController(v_0, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as 
     """
     
     # Constant linear velocity of the robot
-    v_0 = 0.5 
+    # v_0 = 0.5 
 
     # Reference angle in radians
-    theta_ref = 90*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
+    # theta_ref = 90*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
     
     # Tracking error
     e = theta_ref - theta_hat
