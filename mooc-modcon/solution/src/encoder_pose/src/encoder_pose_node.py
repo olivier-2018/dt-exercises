@@ -130,7 +130,7 @@ class EncoderPoseNode(DTROS):
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
 
-        rospy.Timer(rospy.Duration(0.1), self.Controller)
+        # rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         # For encoders syncronization:
@@ -263,17 +263,17 @@ class EncoderPoseNode(DTROS):
         # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
 
-
-
         self.db_estimated_pose.publish(odom)
 
-    def Controller(self, event):
+        if (self.PID_ACTIVITY or self.PID_EXERCISE):
+            self.Controller()
+
+    def Controller(self):
         """
         Calculate theta and perform the control actions given by the PID
         """
         # Do nothing if the PID activity is not set
-        if not (self.PID_ACTIVITY or self.PID_EXERCISE):
-            return
+        
 
         if not self.SIM_STARTED:
             return
