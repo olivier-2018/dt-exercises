@@ -218,10 +218,13 @@ class EncoderPoseNode(DTROS):
 
         self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False
 
-        self.x_curr, self.y_curr, self.theta_curr = odometry_activity.poseEstimation(
+        self.x_curr, self.y_curr, theta_curr = odometry_activity.poseEstimation(
             self.R, self.baseline,
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
+
+        self.theta_curr = self.angle_clamp(theta_curr)
+
 
         # Printing to screen for debugging purposes
         print("              ODOMETRY             ")
@@ -359,6 +362,13 @@ class EncoderPoseNode(DTROS):
                 rospy.signal_shutdown()
                 return
 
+    def angle_clamp(self,theta):
+        if theta > 2 * np.pi:
+            return theta - 2 * np.pi
+        elif theta < -2 * np.pi:
+            return theta + 2 * np.pi
+        else:
+            return theta
 
 if __name__ == "__main__":
     # Initialize the node
