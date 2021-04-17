@@ -130,7 +130,7 @@ class EncoderPoseNode(DTROS):
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
 
-        rospy.Timer(rospy.Duration(0.2), self.Controller)
+        rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         # For encoders syncronization:
@@ -284,7 +284,7 @@ class EncoderPoseNode(DTROS):
         self.time = time_now
 
         if self.PID_ACTIVITY:
-            print("PID controller is actually running")
+
             u, self.prev_e, self.prev_int = PID_controller.PIDController(
                 self.v_0,
                 self.theta_ref,

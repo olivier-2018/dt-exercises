@@ -7,15 +7,6 @@
 import numpy as np
 
 
-# In[2]:
-
-
-# Define the PID constans
-Kp=0.0
-Ki=0.0
-Kd=0.0
-
-
 # In[1]:
 
 
@@ -58,9 +49,9 @@ def PIDController(
 
     # PID parameters
 
-    Kp_y=.85
-    Ki_y=0.0000
-    Kd_y=3
+    Kp_y= 2
+    Ki_y= 1
+    Kd_y= 0.5
     
     # PID controller for omega
     omega = Kp_y*e_y + Ki_y*e_int_y + Kd_y*e_der_y
@@ -68,6 +59,8 @@ def PIDController(
     u = [v_0, omega]
     
     #print(f"\n\nDelta time : {delta_t} \nE : {e_y} \nE int : {e_int_y} \nPrev e : {e_der_y}\nU : {u} \nX_hat : {y_hat} \n")
+    print(f"\n\nDelta time : {delta_t} \nE : {np.rad2deg(e_y)} \nE int : {e_int_y} \nPrev e : {prev_e_y} \nU : {u} \nTheta hat: {np.rad2deg(y_hat)} \n")
+
     
     return u, e_y, e_int_y
 
