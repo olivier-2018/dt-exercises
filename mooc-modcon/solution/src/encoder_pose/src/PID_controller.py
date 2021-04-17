@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[12]:
+# In[23]:
 
 
 import numpy as np
@@ -53,7 +53,7 @@ def PIDController(v_0, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as 
     
     u = [v_0, omega]
     
-    print(f"\n\nDelta time : {delta_t} \nE : {e} \nE int : {e_int} \nPrev e : {prev_e}\nU : {u} \nTheta : {theta_hat} \n")
+    # print(f"\n\nDelta time : {delta_t} \nE : {e} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta : {theta_hat} \n")
 
     
     return u, e, e_int
