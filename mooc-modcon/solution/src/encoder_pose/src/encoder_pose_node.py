@@ -57,11 +57,11 @@ class EncoderPoseNode(DTROS):
         self.y_curr = 0
         self.theta_curr = 0
 
-        self.prev_e = 0
-        self.prev_int = 0
+        self.prev_e = 0 # previous tracking error, starts at 0
+        self.prev_int = [] # previous tracking error integral, starts at 0
         self.time = 0
-        self.v_0 = 0.2
-        self.y_ref = -0.10
+        self.v_0 = [] # 0.15 # fixed robot linear velocity
+        self.y_ref = [] # -0.10
 
         # nominal R and L:
         self.R = 0.0318
@@ -215,6 +215,17 @@ class EncoderPoseNode(DTROS):
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
+        # Printing to screen for debugging purposes
+        print("              ODOMETRY             ")
+        print(f"Baseline : {self.baseline}   R: {self.R}")
+        print(
+            f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
+        print(
+            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
+        print(
+            f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
+        print()
+
         # Calculate new odometry only when new data from encoders arrives
         self.delta_phi_left = self.delta_phi_right = 0
 
@@ -241,16 +252,7 @@ class EncoderPoseNode(DTROS):
         # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
 
-        # Printing to screen for debugging purposes
-        print("              ODOMETRY             ")
-        print(f"Baseline : {self.baseline}   R: {self.R}")
-        print(
-            f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
-        print(
-            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
-        print(
-            f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
-        print()
+
 
         self.db_estimated_pose.publish(odom)
 
@@ -265,18 +267,20 @@ class EncoderPoseNode(DTROS):
         if not self.SIM_STARTED:
             return
 
-        delta_time = time.time()-self.time
+        time_now = time.time()
+        delta_time = time_now-self.time
 
-        self.time = time.time()
+        self.time = time_now
 
         if self.PID_ACTIVITY:
             u, self.prev_e, self.prev_int = PID_controller.PIDController(
                 self.v_0,
-                self.theta_curr,
+                self.theta_curr, # where from?
                 self.prev_e,
                 self.prev_int,
                 delta_time
             )
+
         elif self.PID_EXERCISE:
             u, self.prev_e, self.prev_int = PID_controller_exercise.PIDController(
                 self.v_0,

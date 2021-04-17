@@ -60,7 +60,7 @@ def poseEstimation( R, # radius of wheel (assumed identical) - this is fixed in 
             x_curr, y_curr, theta_curr (:double: values)
     """
     
-    r = 0 #-0.10630302732213565 # keep 0 in simulation, change on the real robot 
+    r = -0.10630302732213565 # keep 0 in simulation, change on the real robot 
     
     R_left = R * (1-r)
     R_right = R * (1+r)
