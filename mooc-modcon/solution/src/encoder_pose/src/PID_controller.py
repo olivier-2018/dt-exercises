@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[40]:
+# In[58]:
 
 
 import numpy as np
@@ -37,23 +37,23 @@ def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add th
     e_int = prev_int + e*delta_t
 
     # anti-windup - preventing the integral error from growing too much
-    #e_int = max(min(e_int,2),-2)
+    e_int = max(min(e_int,2),-2)
 
 
     # derivative of the error
     e_der = (e - prev_e)/delta_t
 
     # controller coefficients
-    Kp = 1
-    Ki = 1
-    Kd = 0.3
+    Kp = 3
+    Ki = 0.5
+    Kd = 1
 
     # PID controller for omega
     omega = Kp*e + Ki*e_int + Kd*e_der
     
     u = [v_0, omega]
     
-    print(f"\n\nDelta time : {delta_t} \nE : {e} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta : {np.rad2deg(theta_hat)} \n")
+    print(f"\n\nDelta time : {delta_t} \nE : {np.rad2deg(e)} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta hat: {np.rad2deg(theta_hat)} \n")
 
     
     return u, e, e_int
