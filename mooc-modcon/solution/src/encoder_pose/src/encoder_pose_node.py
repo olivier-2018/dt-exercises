@@ -60,28 +60,35 @@ class EncoderPoseNode(DTROS):
         self.prev_e = 0 # previous tracking error, starts at 0
         self.prev_int = 0 # previous tracking error integral, starts at 0
         self.time = 0
+<<<<<<< HEAD
         self.v_0 = 0.5 # 0.15 # fixed robot linear velocity
         self.y_ref = -0.1 # -0.10
+=======
+        self.v_0 = 0.5 # fixed robot linear velocity
+        self.y_ref = -0.10
+        self.theta_ref = -90*np.pi/180
+>>>>>>> 758f32426edaa7ce544a3bea289cb0d651c1a76b
 
         # nominal R and L:
         self.R = 0.0318
         self.baseline = 0.1
-        self.read_params_from_calibration_file()
-        # self.R = -1
-        # self.baseline = -1
-        # while self.R < 0 or self.baseline < 0:
-        #     self.R = rospy.get_param(f'/{self.veh}/kinematics_node/radius', -1)
-        #     self.baseline = rospy.get_param(
-        #         f'/{self.veh}/kinematics_node/baseline', -1)
+        self.read_params_from_calibration_file() 
 
+        # Used for AIDO evaluation
         self.AIDO_eval = rospy.get_param(f'/{self.veh}/AIDO_eval', False)
         print(f"AIDO EVAL VAR: {self.AIDO_eval}")
+
+        # Flags for a joyful learning experience :)
         self.ODOMETRY_ACTIVITY = False
         self.PID_ACTIVITY = False
         self.PID_EXERCISE = False
+
         if self.AIDO_eval:
             self.PID_EXERCISE = True
 
+        # Defining subscribers:
+
+        # select the current activity
         _ = rospy.Subscriber(
             f'/{self.veh}/activity_name',
             String,
@@ -89,7 +96,7 @@ class EncoderPoseNode(DTROS):
             queue_size=1
         )
 
-        # Wheel encoders subscribers:
+        # Wheel encoder subscriber:
         left_encoder_topic = f'/{self.veh}/left_wheel_encoder_node/tick'
         _ = rospy.Subscriber(
             left_encoder_topic,
@@ -98,6 +105,7 @@ class EncoderPoseNode(DTROS):
             queue_size=1
         )
 
+        # Wheel encoder subscriber:
         right_encoder_topic = f'/{self.veh}/right_wheel_encoder_node/tick'
         _ = rospy.Subscriber(
             right_encoder_topic,
@@ -106,7 +114,7 @@ class EncoderPoseNode(DTROS):
             queue_size=1
         )
 
-        # Construct publishers
+        # Odometry publisher
         self.db_estimated_pose = rospy.Publisher(
             f'/{self.veh}/encoder_localization',
             Odometry,
@@ -114,6 +122,7 @@ class EncoderPoseNode(DTROS):
             dt_topic_type=TopicType.LOCALIZATION
         )
 
+        # Command publisher
         car_cmd_topic = f'/{self.veh}/joy_mapper_node/car_cmd'
         self.pub_car_cmd = rospy.Publisher(
             car_cmd_topic,
@@ -122,12 +131,15 @@ class EncoderPoseNode(DTROS):
             dt_topic_type=TopicType.CONTROL
         )
 
+        # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
-        rospy.Timer(rospy.Duration(0.2), self.Controller)
 
+        rospy.Timer(rospy.Duration(0.2), self.Controller)
+        #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
+
+        # For encoders syncronization:
         self.RIGHT_RECEIVED = False
         self.LEFT_RECEIVED = False
-        #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         self.log("Initialized!")
 
@@ -275,6 +287,7 @@ class EncoderPoseNode(DTROS):
         if self.PID_ACTIVITY:
             u, self.prev_e, self.prev_int = PID_controller.PIDController(
                 self.v_0,
+                self.theta_ref,
                 self.theta_curr,
                 self.prev_e,
                 self.prev_int,
@@ -330,6 +343,7 @@ class EncoderPoseNode(DTROS):
         # Use the default values from the config folder if a robot-specific file does not exist.
         if not os.path.isfile(fname):
             fname = cali_file_folder + "default.yaml"
+            self.readFile(fname)
             self.logwarn(
                 "Kinematics calibration %s not found! Using default instead." % fname)
         else:
