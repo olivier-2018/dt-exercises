@@ -215,6 +215,17 @@ class EncoderPoseNode(DTROS):
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
+        # Printing to screen for debugging purposes
+        print("              ODOMETRY             ")
+        print(f"Baseline : {self.baseline}   R: {self.R}")
+        print(
+            f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
+        print(
+            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
+        print(
+            f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
+        print()
+
         # Calculate new odometry only when new data from encoders arrives
         self.delta_phi_left = self.delta_phi_right = 0
 
@@ -241,16 +252,7 @@ class EncoderPoseNode(DTROS):
         # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
 
-        # Printing to screen for debugging purposes
-        print("              ODOMETRY             ")
-        print(f"Baseline : {self.baseline}   R: {self.R}")
-        print(
-            f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
-        print(
-            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
-        print(
-            f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
-        print()
+
 
         self.db_estimated_pose.publish(odom)
 
