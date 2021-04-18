@@ -39,5 +39,5 @@ files:
       input_file: "solution/06-PID-Control/PID_controller.ipynb"
   - notebook:
       target_dir: "solution/src/encoder_pose/src"
-      input_file: "solution/07-PID-Control-Homework/PID_controller_exercise.ipynb"
+      input_file: "solution/07-PID-Control-Homework/PID_controller_homework.ipynb"
   
