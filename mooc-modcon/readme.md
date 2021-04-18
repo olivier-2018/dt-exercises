@@ -18,7 +18,7 @@ The final exercise counts towards grading and must be submitted.
 
 - Clone this repository.
 
-- Build the workspace: `dts exercises build`
+- Build the workspace: `dts exercises build`.
 
 - Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser at `localhost:8888`. The login password is `quackquack`.
 
