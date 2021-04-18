@@ -4,7 +4,7 @@ RUN pip3 install -U \
     aido-protocols-daffy
 
 COPY assets/vnc/image/root/Desktop/. /root/Desktop/
-# COPY assets/vnc/image/root/Documents/. /root/Documents/
+COPY assets/vnc/image/root/Documents/. /root/Documents/
 
 COPY assets/vnc/image/root/icons/. /root/.icons/
 COPY assets/vnc/image/usr/bin/. /usr/bin/

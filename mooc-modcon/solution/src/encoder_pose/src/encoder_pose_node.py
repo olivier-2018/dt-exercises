@@ -58,11 +58,12 @@ class EncoderPoseNode(DTROS):
         self.y_curr = 0
         self.theta_curr = 0
 
-        self.prev_e = 0 # previous tracking error, starts at 0
-        self.prev_int = 0 # previous tracking error integral, starts at 0
+        self.prev_e = 0  # previous tracking error, starts at 0
+        self.prev_int = 0  # previous tracking error integral, starts at 0
         self.time = 0
 
-        self.v_0 = 0.5 # fixed robot linear velocity
+        self.v_0 = 0.5  # fixed robot linear velocity
+        self.omega = 0.0
         self.y_ref = -0.10
         self.theta_ref = -90*np.pi/180
 
@@ -91,6 +92,13 @@ class EncoderPoseNode(DTROS):
             f'/{self.veh}/activity_name',
             String,
             self.cbActivity,
+            queue_size=1
+        )
+
+        _ = rospy.Subscriber(
+            f'/{self.veh}/PID_parameters',
+            String,
+            self.cbPIDparam,
             queue_size=1
         )
 
@@ -131,6 +139,7 @@ class EncoderPoseNode(DTROS):
 
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
+        self.STOP = False
 
         # rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
@@ -141,6 +150,36 @@ class EncoderPoseNode(DTROS):
 
         self.log("Initialized!")
         print("Initialized!")
+
+    def cbPIDparam(self, msg):
+        PID_parameters = msg.data
+
+        if PID_parameters=="STOP":
+            self.publishCmd([0, 0])
+            self.STOP = True
+            print("STOP")
+            return
+
+        PID_parameters=PID_parameters.split(";")
+        print(PID_parameters)
+
+        if self.PID_ACTIVITY:
+            self.theta_ref = float(PID_parameters[0])*np.pi/180
+
+        elif self.PID_EXERCISE:
+            self.y_ref = float(PID_parameters[0])
+
+        self.v_0 = float(PID_parameters[1])
+
+        if self.STOP:
+            # if the robot is not moving the wheel encoders
+            # will not receive data and so there will be no pose update
+            # for this reason we need to set a v_0 and move the robot 
+            # in order to restart the controller.
+            self.publishCmd([self.v_0, self.omega])
+
+            self.STOP=False
+        
 
     def cbActivity(self, msg):
         """
@@ -213,11 +252,8 @@ class EncoderPoseNode(DTROS):
             Publish:
                 ~/encoder_localization (:obj:`PoseStamped`): Duckiebot pose.
         """
-        if not self.SIM_STARTED:
+        if self.STOP or not self.SIM_STARTED or not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
             return
-
-        if not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
-             return
 
         self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False
 
@@ -227,7 +263,6 @@ class EncoderPoseNode(DTROS):
             self.delta_phi_left, self.delta_phi_right)
 
         self.theta_curr = self.angle_clamp(theta_curr)
-
 
         # Printing to screen for debugging purposes
         print("              ODOMETRY             ")
@@ -240,6 +275,8 @@ class EncoderPoseNode(DTROS):
             f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
         print()
 
+        # duckiebot_is_moving = (abs(self.delta_phi_left)
+        #                        > 0 or abs(self.delta_phi_right) > 0)
         # Calculate new odometry only when new data from encoders arrives
         self.delta_phi_left = self.delta_phi_right = 0
 
@@ -268,7 +305,7 @@ class EncoderPoseNode(DTROS):
 
         self.db_estimated_pose.publish(odom)
 
-        if (self.PID_ACTIVITY or self.PID_EXERCISE):
+        if (self.PID_ACTIVITY or self.PID_EXERCISE): # and duckiebot_is_moving:
             self.Controller()
 
     def Controller(self):
@@ -276,7 +313,6 @@ class EncoderPoseNode(DTROS):
         Calculate theta and perform the control actions given by the PID
         """
         # Do nothing if the PID activity is not set
-
 
         if not self.SIM_STARTED:
             return
@@ -328,6 +364,8 @@ class EncoderPoseNode(DTROS):
 
         car_control_msg.v = u[0]  # v
         car_control_msg.omega = u[1]  # omega
+        # save omega in case of STOP
+        self.omega = u[1]
 
         self.pub_car_cmd.publish(car_control_msg)
 
@@ -365,13 +403,14 @@ class EncoderPoseNode(DTROS):
                 rospy.signal_shutdown()
                 return
 
-    def angle_clamp(self,theta):
+    def angle_clamp(self, theta):
         if theta > 2 * np.pi:
             return theta - 2 * np.pi
         elif theta < -2 * np.pi:
             return theta + 2 * np.pi
         else:
             return theta
+
 
 if __name__ == "__main__":
     # Initialize the node
