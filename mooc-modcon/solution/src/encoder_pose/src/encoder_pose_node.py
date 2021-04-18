@@ -141,7 +141,7 @@ class EncoderPoseNode(DTROS):
         self.SIM_STARTED = False
         self.STOP = False
 
-        # rospy.Timer(rospy.Duration(0.1), self.Controller)
+        #rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         # For encoders syncronization:
