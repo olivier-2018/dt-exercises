@@ -34,9 +34,6 @@ def PIDController(
         current_int_e (:double:) current integral error.
     """
     
-    # Error along x
-
-
     # error
     e_y = y_ref - y_hat
 
@@ -45,21 +42,20 @@ def PIDController(
     
     # antiwindup
     e_int_y = max(min(e_int_y,1),-1)
-    
 
     # derivative of the error
     e_der_y = (e_y - prev_e_y)/delta_t
 
     # PID parameters
 
-    Kp_y= 2
-    Ki_y= 0.3
+    Kp_y= 4
+    Ki_y= 0.5
     Kd_y= 100
     
     # PID controller for omega
     omega = Kp_y*e_y + Ki_y*e_int_y + Kd_y*e_der_y
     
-    u = [v_0/2, omega]
+    u = [v_0, omega]
     
     #print(f"\n\nDelta time : {delta_t} \nE : {e_y} \nE int : {e_int_y} \nPrev e : {e_der_y}\nU : {u} \nX_hat : {y_hat} \n")
     print(f"\n\nDelta time : {delta_t} \nE : {e_y} \ne_int : {e_int_y} \ne_der : {e_der_y} \nU : {u} \ny_hat: {y_hat} \n")

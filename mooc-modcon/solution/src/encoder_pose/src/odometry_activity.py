@@ -23,8 +23,8 @@ def DeltaPhi(encoder_msg, prev_ticks):
     delta_ticks = ticks-prev_ticks
     
     # for debugging
-    print(f"        DELTA TICKS  {encoder_msg.header.frame_id}")
-    print(delta_ticks)
+#     print(f"        DELTA TICKS  {encoder_msg.header.frame_id}")
+#     print(delta_ticks)
 
     N_tot = encoder_msg.resolution #total number of ticks per wheel revolution
 
