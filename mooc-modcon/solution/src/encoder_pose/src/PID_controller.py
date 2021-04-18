@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[60]:
+# In[1]:
 
 
 import numpy as np
@@ -34,17 +34,19 @@ def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add th
     e_der = (e - prev_e)/delta_t
 
     # controller coefficients
-    Kp = 3
-    Ki = 0.5
-    Kd = 1
+    Kp = 5
+    Ki = 0.2
+    Kd = 0.1
 
     # PID controller for omega
     omega = Kp*e + Ki*e_int + Kd*e_der
     
-    u = [v_0, omega]
+    if abs(e - prev_e) < np.deg2rad(0.1):
+        u = [0, 0]
+    else:
+        u = [v_0, omega]
     
-    print(f"\n\nDelta time : {delta_t} \nE : {np.rad2deg(e)} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta hat: {np.rad2deg(theta_hat)} \n")
-
+    print(f"\n\nDelta time : {delta_t} \nE : {np.rad2deg(e)} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta hat: {np.rad2deg(theta_hat)} \n Abs e {np.rad2deg(abs(e - prev_e))}")
     
     return u, e, e_int
 

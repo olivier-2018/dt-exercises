@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[8]:
 
 
 # The function written in this cell will actually be ran on your robot (sim or real). 
@@ -60,7 +60,7 @@ def poseEstimation( R, # radius of wheel (assumed identical) - this is fixed in 
             x_curr, y_curr, theta_curr (:double: values)
     """
     
-    r = 0 #-0.10630302732213565 # keep 0 in simulation, change on the real robot 
+    r = -0.0036861506055818716 # make different than zero if you have reason to believe the wheels are of different sizes.
     
     R_left = R * (1-r)
     R_right = R * (1+r)
@@ -77,10 +77,6 @@ def poseEstimation( R, # radius of wheel (assumed identical) - this is fixed in 
     x_curr = x_prev + Dx
     y_curr = y_prev + Dy
     theta_curr = theta_prev + Dtheta
-    
-    #x_curr = x_prev + R*(delta_phi_left+delta_phi_right)*np.cos(theta_prev)/2
-    #y_curr = y_prev + R*(delta_phi_left+delta_phi_right)*np.sin(theta_prev)/2
-    #theta_curr = theta_prev + R*(delta_phi_right-delta_phi_left)/baseline_wheel2wheel
 
     return x_curr, y_curr, theta_curr
 

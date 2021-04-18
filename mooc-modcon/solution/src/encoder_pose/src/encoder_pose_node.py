@@ -132,7 +132,7 @@ class EncoderPoseNode(DTROS):
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
 
-        # rospy.Timer(rospy.Duration(0.1), self.Controller)
+        #rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         # For encoders syncronization:
@@ -268,7 +268,7 @@ class EncoderPoseNode(DTROS):
 
         self.db_estimated_pose.publish(odom)
 
-        if (self.PID_ACTIVITY or self.PID_EXERCISE):
+        if (self.PID_ACTIVITY or self.PID_EXERCISE) and self.delta_phi_left != 0 and self.delta_phi_right != 0:
             self.Controller()
 
     def Controller(self):
