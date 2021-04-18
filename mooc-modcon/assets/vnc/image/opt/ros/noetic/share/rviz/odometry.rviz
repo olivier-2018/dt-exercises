@@ -19,11 +19,6 @@ Panels:
       - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
-  - Class: rviz/Views
-    Expanded:
-      - /Current View1
-    Name: Views
-    Splitter Ratio: 0.5
   - Class: rviz/Time
     Experimental: false
     Name: Time
@@ -78,14 +73,14 @@ Visualization Manager:
       Queue Size: 10
       Shape:
         Alpha: 1
-        Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Length: 0.2
+        Axes Radius: 0.02
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
         Shaft Length: 0.5
         Shaft Radius: 0.05000000074505806
-        Value: Arrow
+        Value: Axes
       Topic: /agent/encoder_localization
       Unreliable: false
       Value: true
@@ -165,7 +160,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: false
+    collapsed: true
   Width: 1024
   X: 0
   Y: 0
