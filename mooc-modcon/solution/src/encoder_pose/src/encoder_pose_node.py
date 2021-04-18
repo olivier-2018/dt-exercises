@@ -35,7 +35,7 @@ class EncoderPoseNode(DTROS):
     """
 
     def __init__(self, node_name):
-
+        print("Initializing...")
         # Initialize the DTROS parent class
         super(EncoderPoseNode, self).__init__(
             node_name=node_name,
@@ -67,6 +67,7 @@ class EncoderPoseNode(DTROS):
         self.theta_ref = -90*np.pi/180
 
         # nominal R and L:
+        print("Loading kinematics calibration...")
         self.R = 0.0318
         self.baseline = 0.1
         self.read_params_from_calibration_file()
@@ -139,6 +140,7 @@ class EncoderPoseNode(DTROS):
         self.LEFT_RECEIVED = False
 
         self.log("Initialized!")
+        print("Initialized!")
 
     def cbActivity(self, msg):
         """
@@ -215,7 +217,7 @@ class EncoderPoseNode(DTROS):
             return
 
         if not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
-            return
+             return
 
         self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False
 
@@ -274,7 +276,7 @@ class EncoderPoseNode(DTROS):
         Calculate theta and perform the control actions given by the PID
         """
         # Do nothing if the PID activity is not set
-        
+
 
         if not self.SIM_STARTED:
             return

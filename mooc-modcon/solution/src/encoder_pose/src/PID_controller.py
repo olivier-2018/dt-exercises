@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[58]:
+# In[60]:
 
 
 import numpy as np
 
 # Heading control
-
-# v_0=0.15 # TODO: Vincenzo make it tunable online kind of like rosparam set
-# theta_ref = 70*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
-
+# Do not change the name of the function, inputs or outputs. It will break things.
 
 def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as input
     """
@@ -24,12 +21,6 @@ def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add th
         current_e (:double:) current tracking error.
     """
     
-    # Constant linear velocity of the robot
-    # v_0 = 0.5 
-
-    # Reference angle in radians
-    # theta_ref = 90*np.pi/180 # TODO: Vincenzo make it tunable online kind of like rosparam set
-    
     # Tracking error
     e = theta_ref - theta_hat
 
@@ -38,7 +29,6 @@ def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add th
 
     # anti-windup - preventing the integral error from growing too much
     e_int = max(min(e_int,2),-2)
-
 
     # derivative of the error
     e_der = (e - prev_e)/delta_t
