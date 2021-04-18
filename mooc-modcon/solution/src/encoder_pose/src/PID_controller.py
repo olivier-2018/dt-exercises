@@ -41,10 +41,10 @@ def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add th
     # PID controller for omega
     omega = Kp*e + Ki*e_int + Kd*e_der
     
-    if abs(e - prev_e) < np.deg2rad(0.1):
-        u = [0, 0]
-    else:
-        u = [v_0, omega]
+#     if abs(e - prev_e) < np.deg2rad(0.1):
+#         u = [0, 0]
+#     else:
+#         u = [v_0, omega]
     
     print(f"\n\nDelta time : {delta_t} \nE : {np.rad2deg(e)} \nE int : {e_int} \nPrev e : {prev_e} \nU : {u} \nTheta hat: {np.rad2deg(theta_hat)} \n Abs e {np.rad2deg(abs(e - prev_e))}")
     
