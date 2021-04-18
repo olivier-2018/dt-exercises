@@ -10,7 +10,8 @@ from std_msgs.msg import String
 
 import odometry_activity
 import PID_controller
-import PID_controller_exercise
+import PID_controller_homework
+
 
 import os
 import yaml
@@ -295,7 +296,7 @@ class EncoderPoseNode(DTROS):
             )
 
         elif self.PID_EXERCISE:
-            u, self.prev_e, self.prev_int = PID_controller_exercise.PIDController(
+            u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
                 self.v_0,
                 self.y_ref,
                 self.y_curr,
