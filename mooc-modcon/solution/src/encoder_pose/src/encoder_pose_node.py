@@ -62,10 +62,10 @@ class EncoderPoseNode(DTROS):
         self.prev_int = 0  # previous tracking error integral, starts at 0
         self.time = 0
 
-        self.v_0 = 0.5  # fixed robot linear velocity
-        self.omega = 0.0
-        self.y_ref = -0.10
-        self.theta_ref = -90*np.pi/180
+        self.v_0 = 0  # fixed robot linear velocity - starts at zero so the activities start on command inside VNC
+        self.y_ref = -0.10 #reference y for PID lateral control activity
+        self.theta_ref = 0*np.pi/180 # initial reference signal for heading control activity
+        self.omega = 0.0 # initializing omega command to the robot
 
         # nominal R and L:
         print("Loading kinematics calibration...")
@@ -141,7 +141,7 @@ class EncoderPoseNode(DTROS):
         self.SIM_STARTED = False
         self.duckiebot_is_moving=False
         self.STOP = False
-        
+
 
         #rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
@@ -176,12 +176,12 @@ class EncoderPoseNode(DTROS):
         if self.STOP:
             # if the robot is not moving the wheel encoders
             # will not receive data and so there will be no pose update
-            # for this reason we need to set a v_0 and move the robot 
+            # for this reason we need to set a v_0 and move the robot
             # in order to restart the controller.
             self.publishCmd([self.v_0, self.omega])
 
             self.STOP=False
-        
+
 
     def cbActivity(self, msg):
         """
