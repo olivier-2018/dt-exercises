@@ -1,6 +1,7 @@
 import numpy as np
 
 class UnitTestMessage:
+    # Test the WheelEncoderStamped messages
     def __init__(self, callback):
         from duckietown_msgs.msg import WheelEncoderStamped
         from std_msgs.msg import Header
@@ -25,13 +26,32 @@ class UnitTestMessage:
 
 
 class UnitTestOdometry:
+    # Test the odometry
     def __init__(self, R, baseline_wheel2wheel, poseEstimation):
         x_prev = y_prev = theta_prev = 0 # initial conditions
-        x_prev_ = [] # to store the estimates, so we can plot them
+        
+        # to store the estimates, so we can plot them
+        x_prev_ = [] 
         y_prev_ = []
         theta_prev_ = []
-
-        for _ in range(0,35):
+        
+        
+        
+        x, y, robot_rotation = poseEstimation( R,
+                                            baseline_wheel2wheel,
+                                            x_prev,
+                                            y_prev,
+                                            theta_prev,
+                                            5*np.pi/180, # wheel rotates of 5 degree
+                                            10*np.pi/180) # wheel rotates of 10 degree
+        # given how much the robot rotates with wheels rotation of 5 and 10 degree,
+        # calculate the number of steps required to do a circle. 
+        # this is indipendent fro R and the baseline int this way!
+        steps4circle = int(2*np.pi/robot_rotation)
+        
+        # iterate steps4circle times the pose estiamtion.
+        for _ in range(0,steps4circle):
+            # save the current values of y, x and theta
             x_prev_.append(x_prev)
             y_prev_.append(y_prev)
             theta_prev_.append(theta_prev)
@@ -40,8 +60,9 @@ class UnitTestOdometry:
                                             x_prev,
                                             y_prev,
                                             theta_prev,
-                                            0.087266389,
-                                            0.698131111)
+                                            5*np.pi/180, # wheel rotates of 5 degree
+                                            10*np.pi/180) # wheel rotates of 10 degree
+        # plot the results
         self.plot(x_prev_, y_prev_, theta_prev_)
 
     def plot(self,x,y,theta):
@@ -59,7 +80,7 @@ class UnitTestOdometry:
 
 
 class UnitTestHeadingPID:
-    def __init__(self, R, baseline, v_0, gain, trim, PIDController):
+    def __init__(self, R, baseline, v_0,thata_ref, gain, trim, PIDController):
         self.R = R # wheel radius
         self.L = baseline # distance from wheel to wheel (notice, this is 2*L as defined in the theory)
         self.v_0 = v_0 # fixed robot linear speed
@@ -67,6 +88,7 @@ class UnitTestHeadingPID:
         self.delta_t = 0.02 # unit test simulation time step
         self.t1 = np.arange(0.0, 10.0, self.delta_t) # time vector
         self.theta_prev = 0 # theta initial condition of the Duckiebot
+        self.thata_ref = thata_ref # theta ref, the goal the Duckiebot has to reach
         self.k_r_inv = (gain + trim) / 27.0 # motor constants (scaled to simulate hardware setup)
         self.k_l_inv = (gain - trim) / 27.0
 
@@ -90,17 +112,19 @@ class UnitTestHeadingPID:
             u_r_.append(u_r)
             u_l_.append(u_l)
             
-            # Calculating commands
+            # Calculating wheel commands
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, theta_hat, prev_e, prev_int, self.delta_t) 
+                self.v_0, self.thata_ref, theta_hat, prev_e, prev_int, self.delta_t) 
 
             self.v_0 = u[0]
             omega = u[1]
 
+        # plot the theta_hat and the error on theta
         self.plot_pose(theta_hat_, err_,"Duckiebot heading (Theta)","Time (s)","Theta (Degree)")
-        
+        # plot the control inputs
         self.plot_input(u_r_,u_l_,"Control inputs","Time (s)","PWM?")
-
+        
+        # reset everything for simulation wiht noise
         self.theta_prev = 0
         omega = 0
         prev_e = 0
@@ -110,7 +134,8 @@ class UnitTestHeadingPID:
         theta_hat_ = []
         u_r_ = []
         u_l_ = []
-
+        
+        # simulate with noise
         for _ in self.t1:
             theta_hat,u_r,u_l = self.sim_noise(omega, self.v_0, self.delta_t)
 
@@ -120,12 +145,14 @@ class UnitTestHeadingPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, theta_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.thata_ref,theta_hat, prev_e, prev_int, self.delta_t)
 
             self.v_0 = u[0]
             omega = u[1]
-
+        
+        # plot theta with noise and the error on theta
         self.plot_pose(theta_hat_, err_,"Theta with noise","Time (s)","Theta (Degree)")
+        # plot the input to the wheels
         self.plot_input(u_r_,u_l_,"Control inputs","Time (s)","PWM?")
 
     def plot_input(self, u_r, u_l, title, x_label, y_label):
@@ -139,8 +166,8 @@ class UnitTestHeadingPID:
         # plot the control inputs
         plt.axis([0, 10, np.min([np.min(u_r),np.min(u_l)]), np.max([np.max(u_r),np.max(u_l)])])
 
-        plt.plot(self.t1, (u_r), 'r--', self.t1, (u_l), 'b')
-
+        plt.plot(self.t1, (u_r), 'r--', self.t1, (u_l), 'b--')
+        
         plt.legend(['Right wheel','Left wheel'])
         plt.show()
 
@@ -210,7 +237,7 @@ class UnitTestHeadingPID:
 
 
 class UnitTestPositionPID:
-    def __init__(self, R, baseline, v_0, gain, trim, PIDController):
+    def __init__(self, R, baseline, v_0, y_ref, gain, trim, PIDController):
         self.R = R
         self.L = baseline
         self.PIDController = PIDController
@@ -219,6 +246,7 @@ class UnitTestPositionPID:
         self.t1 = np.arange(0.0, self.test_horizont, self.delta_t)
         self.theta_prev = 0
         self.y_prev = 0
+        self.y_ref=y_ref
         self.v_0 = v_0
 
         self.k_r_inv = (gain + trim) / 27.0
@@ -245,7 +273,7 @@ class UnitTestPositionPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, y_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.y_ref,y_hat, prev_e, prev_int, self.delta_t)
 
             self.v_0 = u[0]
             omega = u[1]
@@ -273,7 +301,7 @@ class UnitTestPositionPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, y_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.y_ref, y_hat, prev_e, prev_int, self.delta_t)
 
             self.v_0 = u[0]
             omega = u[1]
