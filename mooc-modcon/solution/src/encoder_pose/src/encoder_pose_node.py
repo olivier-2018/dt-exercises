@@ -139,7 +139,9 @@ class EncoderPoseNode(DTROS):
 
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
+        self.duckiebot_is_moving=False
         self.STOP = False
+        
 
         #rospy.Timer(rospy.Duration(0.1), self.Controller)
         #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
@@ -273,10 +275,15 @@ class EncoderPoseNode(DTROS):
             f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
         print(
             f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
+        print(
+            f"Prev integral error : {self.prev_int}")
         print()
 
-        # duckiebot_is_moving = (abs(self.delta_phi_left)
-        #                        > 0 or abs(self.delta_phi_right) > 0)
+        self.duckiebot_is_moving = (abs(self.delta_phi_left)
+                               > 0 or abs(self.delta_phi_right) > 0)
+        # if duckiebot_is_moving:
+        #     self.prev_int=0
+        #     self.prev_e=0
         # Calculate new odometry only when new data from encoders arrives
         self.delta_phi_left = self.delta_phi_right = 0
 
@@ -322,29 +329,29 @@ class EncoderPoseNode(DTROS):
 
         self.time = time_now
 
-        if self.PID_ACTIVITY:
+        if self.duckiebot_is_moving:
 
-            u, self.prev_e, self.prev_int = PID_controller.PIDController(
-                self.v_0,
-                self.theta_ref,
-                self.theta_curr,
-                self.prev_e,
-                self.prev_int,
-                delta_time
-            )
+            if self.PID_ACTIVITY:
+                u, self.prev_e, self.prev_int = PID_controller.PIDController(
+                    self.v_0,
+                    self.theta_ref,
+                    self.theta_curr,
+                    self.prev_e,
+                    self.prev_int,
+                    delta_time
+                )
 
-        elif self.PID_EXERCISE:
-            u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
-                self.v_0,
-                self.y_ref,
-                self.y_curr,
-                self.prev_e,
-                self.prev_int,
-                delta_time
-            )
-
-        if u == []:
-            return
+            elif self.PID_EXERCISE:
+                u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
+                    self.v_0,
+                    self.y_ref,
+                    self.y_curr,
+                    self.prev_e,
+                    self.prev_int,
+                    delta_time
+                )
+        else:
+            u = [self.v_0, 0.0]
 
         # self.setGain(u[1])
         self.publishCmd(u)
