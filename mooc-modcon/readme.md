@@ -16,6 +16,10 @@ The final exercise counts towards grading and must be submitted.
 
 ## Execute the activities
 
-- Clone this repository. Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser at `localhost:8888`. The login password is `quackquack`.
+- Clone this repository.
+
+- Build the workspace: `dts exercises build`
+
+- Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser at `localhost:8888`. The login password is `quackquack`.
 
 - Go to the first folder, click on the notebook file, and follow through.
