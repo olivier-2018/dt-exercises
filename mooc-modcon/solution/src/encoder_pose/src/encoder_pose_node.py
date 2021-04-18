@@ -268,7 +268,7 @@ class EncoderPoseNode(DTROS):
 
         self.db_estimated_pose.publish(odom)
 
-        if (self.PID_ACTIVITY or self.PID_EXERCISE) and self.delta_phi_left != 0 and self.delta_phi_right != 0:
+        if (self.PID_ACTIVITY or self.PID_EXERCISE):
             self.Controller()
 
     def Controller(self):
