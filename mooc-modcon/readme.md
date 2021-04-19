@@ -20,6 +20,12 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 - Build the workspace: `dts exercises build`.
 
-- Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser at `localhost:8888`. The login password is `quackquack`.
+- Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser. The login password is `quackquack`.
 
 - Go to the first folder (`01-Representations`), open the notebook file, and follow through.
+
+- You will have to execute the activities in order, from `/01-Representations` to `/05-PID-Control`. Skipping activities might result in errors.
+
+## Submit the homework
+
+- After completing the activities, you can proceed to `/06-PID-Control-Homework` and follow the instructions to submit your assignment. 
