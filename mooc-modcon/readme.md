@@ -1,10 +1,10 @@
 # Instructions
 
-Follow these instructions to run these activities and exercercise.
+Follow these instructions to run these activities.
 
-The final exercise counts towards grading and must be submitted.
+The final exercise counts towards grading and must be submitted for evaluation if you are pursuing the MOOC verified track.
 
-## Make sure your system is up to delta_time
+## Make sure your system is up to date
 
 - 💻 Always make sure your Duckietown Shell is updated to the latest version. See [installation instructions](https://github.com/duckietown/duckietown-shell)
 
@@ -22,4 +22,4 @@ The final exercise counts towards grading and must be submitted.
 
 - Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser at `localhost:8888`. The login password is `quackquack`.
 
-- Go to the first folder, click on the notebook file, and follow through.
+- Go to the first folder (`01-Representations`), open the notebook file, and follow through.
