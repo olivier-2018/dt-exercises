@@ -161,7 +161,18 @@ class EncoderPoseNode(DTROS):
     def cbEpisodeStart(self, msg: EpisodeStart):
         self.log(msg.episode_name)
         self.log(msg.payload_yaml)
-        assert msg.payload_yaml == '42'
+        """
+        
+        initial_pose:
+            y: 0.1
+            theta_deg: 32
+            
+        """
+        loaded = yaml.load(msg.payload_yaml, Loader=yaml.FullLoader)
+        ip = loaded['initial_pose']
+        y = ip['y']
+        theta_deg = ip['theta_deg']
+        # assert msg.payload_yaml == '42'
 
     def cbPIDparam(self, msg):
         PID_parameters = msg.data
