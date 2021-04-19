@@ -63,14 +63,14 @@ class EncoderPoseNode(DTROS):
         self.time = 0
 
         self.v_0 = 0  # fixed robot linear velocity - starts at zero so the activities start on command inside VNC
-        self.y_ref = -0.10 #reference y for PID lateral control activity
+        self.y_ref = 0 #reference y for PID lateral control activity
         self.theta_ref = 0*np.pi/180 # initial reference signal for heading control activity
         self.omega = 0.0 # initializing omega command to the robot
 
         # nominal R and L:
         print("Loading kinematics calibration...")
-        self.R = 0.0318
-        self.baseline = 0.1
+        self.R = 0.0318 # meters, default value of wheel radius
+        self.baseline = 0.1 # meters, default value of baseline
         self.read_params_from_calibration_file()
 
         # Used for AIDO evaluation
@@ -242,6 +242,7 @@ class EncoderPoseNode(DTROS):
         delta_phi_right, self.right_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.right_tick_prev)
         self.delta_phi_right += delta_phi_right
+
         # compute the new pose
         self.RIGHT_RECEIVED = True
         self.posePublisher()
@@ -257,26 +258,26 @@ class EncoderPoseNode(DTROS):
         if self.STOP or not self.SIM_STARTED or not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
             return
 
-        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False
+        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False # synch incoming messages from encoders
 
         self.x_curr, self.y_curr, theta_curr = odometry_activity.poseEstimation(
             self.R, self.baseline,
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
-        self.theta_curr = self.angle_clamp(theta_curr)
+        self.theta_curr = self.angle_clamp(theta_curr) # angle always between 0,2pi
 
         # Printing to screen for debugging purposes
         print("              ODOMETRY             ")
-        print(f"Baseline : {self.baseline}   R: {self.R}")
+        # print(f"Baseline : {self.baseline}   R: {self.R}")
         print(
-            f"Theta : {self.theta_curr*180/np.pi}   x: {self.x_curr}   y: {self.y_curr}")
+            f"Theta : {np.rad2deg(self.theta_curr)} deg,  x: {self.x_curr} m,  y: {self.y_curr} m")
         print(
-            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)}   Rotation right wheel : {np.rad2deg(self.delta_phi_right)}")
+            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)} deg,   Rotation right wheel : {np.rad2deg(self.delta_phi_right)} deg")
         print(
             f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
-        print(
-            f"Prev integral error : {self.prev_int}")
+        # print(
+        #     f"Prev integral error : {self.prev_int}")
         print()
 
         self.duckiebot_is_moving = (abs(self.delta_phi_left)
@@ -329,35 +330,31 @@ class EncoderPoseNode(DTROS):
 
         self.time = time_now
 
-        if self.duckiebot_is_moving:
+        #if self.duckiebot_is_moving:
 
-            if self.PID_ACTIVITY:
-                u, self.prev_e, self.prev_int = PID_controller.PIDController(
-                    self.v_0,
-                    self.theta_ref,
-                    self.theta_curr,
-                    self.prev_e,
-                    self.prev_int,
-                    delta_time
-                )
+        if self.PID_ACTIVITY:
+            u, self.prev_e, self.prev_int = PID_controller.PIDController(
+                self.v_0,
+                self.theta_ref,
+                self.theta_curr,
+                self.prev_e,
+                self.prev_int,
+                delta_time
+            )
 
-            elif self.PID_EXERCISE:
-                u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
-                    self.v_0,
-                    self.y_ref,
-                    self.y_curr,
-                    self.prev_e,
-                    self.prev_int,
-                    delta_time
-                )
+        elif self.PID_EXERCISE:
+            u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
+                self.v_0,
+                self.y_ref,
+                self.y_curr,
+                self.prev_e,
+                self.prev_int,
+                delta_time
+            )
         else:
             u = [self.v_0, 0.0]
 
-        # self.setGain(u[1])
         self.publishCmd(u)
-    #
-    # Pose estimation is the function that is created by the user.
-    #
 
     def publishCmd(self, u):
         """Publishes a car command message.

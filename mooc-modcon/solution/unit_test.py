@@ -29,14 +29,14 @@ class UnitTestOdometry:
     # Test the odometry
     def __init__(self, R, baseline_wheel2wheel, poseEstimation):
         x_prev = y_prev = theta_prev = 0 # initial conditions
-        
+
         # to store the estimates, so we can plot them
-        x_prev_ = [] 
+        x_prev_ = []
         y_prev_ = []
         theta_prev_ = []
-        
-        
-        
+
+
+
         x, y, robot_rotation = poseEstimation( R,
                                             baseline_wheel2wheel,
                                             x_prev,
@@ -45,10 +45,10 @@ class UnitTestOdometry:
                                             5*np.pi/180, # wheel rotates of 5 degree
                                             10*np.pi/180) # wheel rotates of 10 degree
         # given how much the robot rotates with wheels rotation of 5 and 10 degree,
-        # calculate the number of steps required to do a circle. 
+        # calculate the number of steps required to do a circle.
         # this is indipendent fro R and the baseline int this way!
         steps4circle = int(2*np.pi/robot_rotation)
-        
+
         # iterate steps4circle times the pose estiamtion.
         for _ in range(0,steps4circle):
             # save the current values of y, x and theta
@@ -80,7 +80,7 @@ class UnitTestOdometry:
 
 
 class UnitTestHeadingPID:
-    def __init__(self, R, baseline, v_0,thata_ref, gain, trim, PIDController):
+    def __init__(self, R, baseline, v_0, theta_ref, gain, trim, PIDController):
         self.R = R # wheel radius
         self.L = baseline # distance from wheel to wheel (notice, this is 2*L as defined in the theory)
         self.v_0 = v_0 # fixed robot linear speed
@@ -88,7 +88,7 @@ class UnitTestHeadingPID:
         self.delta_t = 0.02 # unit test simulation time step
         self.t1 = np.arange(0.0, 10.0, self.delta_t) # time vector
         self.theta_prev = 0 # theta initial condition of the Duckiebot
-        self.thata_ref = thata_ref # theta ref, the goal the Duckiebot has to reach
+        self.theta_ref = thata_ref # theta ref, the goal the Duckiebot has to reach
         self.k_r_inv = (gain + trim) / 27.0 # motor constants (scaled to simulate hardware setup)
         self.k_l_inv = (gain - trim) / 27.0
 
@@ -105,16 +105,16 @@ class UnitTestHeadingPID:
 
         for _ in self.t1:
             theta_hat, u_r, u_l = self.sim(omega, self.v_0, self.delta_t) # simulate driving
-            
+
             # For plotting
-            theta_hat_.append(theta_hat) 
+            theta_hat_.append(theta_hat)
             err_.append(prev_e)
             u_r_.append(u_r)
             u_l_.append(u_l)
-            
+
             # Calculating wheel commands
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.thata_ref, theta_hat, prev_e, prev_int, self.delta_t) 
+                self.v_0, self.thata_ref, theta_hat, prev_e, prev_int, self.delta_t)
 
             self.v_0 = u[0]
             omega = u[1]
@@ -123,7 +123,7 @@ class UnitTestHeadingPID:
         self.plot_pose(theta_hat_, err_,"Duckiebot heading (Theta)","Time (s)","Theta (Degree)")
         # plot the control inputs
         self.plot_input(u_r_,u_l_,"Control inputs","Time (s)","PWM?")
-        
+
         # reset everything for simulation wiht noise
         self.theta_prev = 0
         omega = 0
@@ -134,7 +134,7 @@ class UnitTestHeadingPID:
         theta_hat_ = []
         u_r_ = []
         u_l_ = []
-        
+
         # simulate with noise
         for _ in self.t1:
             theta_hat,u_r,u_l = self.sim_noise(omega, self.v_0, self.delta_t)
@@ -149,7 +149,7 @@ class UnitTestHeadingPID:
 
             self.v_0 = u[0]
             omega = u[1]
-        
+
         # plot theta with noise and the error on theta
         self.plot_pose(theta_hat_, err_,"Theta with noise","Time (s)","Theta (Degree)")
         # plot the input to the wheels
@@ -167,7 +167,7 @@ class UnitTestHeadingPID:
         plt.axis([0, 10, np.min([np.min(u_r),np.min(u_l)]), np.max([np.max(u_r),np.max(u_l)])])
 
         plt.plot(self.t1, (u_r), 'r--', self.t1, (u_l), 'b--')
-        
+
         plt.legend(['Right wheel','Left wheel'])
         plt.show()
 
@@ -216,7 +216,7 @@ class UnitTestHeadingPID:
         delta_phi_left = time*omega_l
         delta_phi_right = time*omega_r
 
-        measurement_noise_variance_deg = 1 # variance of the additive measurement noise
+        measurement_noise_variance_deg = 0.5 # variance of the additive measurement noise
         measurement_noise = np.random.normal(0, np.deg2rad(measurement_noise_variance_deg) )
 
         self.theta_prev = self.theta_prev + self.R * \
@@ -278,8 +278,8 @@ class UnitTestPositionPID:
             self.v_0 = u[0]
             omega = u[1]
 
-        self.plot_pose(y_hat_, err_,"No noise","Time (s)","Y (m)")
-        self.plot_input(u_r_,u_l_,"Control inputs","Time (s)","PWM?")
+        self.plot_pose(y_hat_, err_,"No noise", "Time (s)", "y (m)")
+        self.plot_input(u_r_,u_l_,"Control inputs","Time (s)","PWM")
 
         self.theta_prev = 0
         self.y_prev = 0
