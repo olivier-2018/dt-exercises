@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
 
 import numpy as np
 
 # write the PID controller function for y postion control.
-
-# **DO NOT CHANGE THE NAME OF THE FUNCTION**, it will break things
 
 def PIDController(
     v_0,
@@ -43,7 +41,10 @@ def PIDController(
     # derivative of the error
     e_der_y = (e_y - prev_e_y)/delta_t
 
-    # PID parameters sim (v0 = 0.2, yref = 0.2 then -0.1)
+#     # PID parameters sim (v0 = 0.2, yref = 0.2 then -0.1)
+#     Kp_y= 9
+#     Ki_y= 0.02
+#     Kd_y= 120 
 
     # PID parameters robot (v0=0.2, yref = 0.1 then -0.2)
     Kp_y= 9
