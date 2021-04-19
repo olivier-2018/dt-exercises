@@ -7,7 +7,7 @@ robots:
     configuration:
       pose:
         data: !!binary |
-          AAAAAAAA8L8HXBQzJqahPAAAAEAOrSpAB1wUMyamobwAAAAAAADwvxgzTXqSv9k/AAAAAAAAAAAA
+          AAAAAAAA8D8AAAAAAAAAAAAAAKDIdiZAAAAAAAAAAAAAAAAAAADwPz4uo0ot9wNAAAAAAAAAAAAA
           AAAAAAAAAAAAAAAAAPA/
         dtype: float64
         shape:
@@ -22,15 +22,39 @@ robots:
         - 3
         - 3
 duckies: {}
-environment: "tiles:\n- - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
+environment: "tiles:\n- - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  -\
+  \ grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n- - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  -\
+  \ grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n- - grass\n  - curve_left/W\n  - straight/E\n  - straight/E\n  - straight/E\n\
+  \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
+  \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
+  \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
+  \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
+  \  - straight/E\n  - straight/E\n  - curve_left/N\n  - grass\n- - grass\n  - straight/N\n\
+  \  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  -\
+  \ grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n  - grass\n  - grass\n  - straight/S\n  - grass\n- - grass\n  - curve_left/S\n\
   \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
   \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
   \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
   \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
   \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
-  \  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n  - straight/E\n\
-  \  - straight/E\n  - straight/E\nstart_tile:\n- 0\n- 0\ntile_size: 0.585\nobjects:\
-  \ {}\n"
+  \  - curve_left/E\n  - grass\n- - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  -\
+  \ grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n  - grass\n- - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  -\
+  \ grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n\
+  \  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n  - grass\n \
+  \ - grass\n  - grass\ntile_size: 0.585\nstart_tile:\n- 2\n- 2\nstart_pose:\n- -\
+  \ 0.48\n  - 0\n  - 0.2925\n- 0\nobjects: {}\n"
 player_robots:
 - ego0
-scenario_name: mooc-modcon-straight-road-000
+scenario_name: mooc-modcon-000
