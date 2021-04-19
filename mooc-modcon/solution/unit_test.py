@@ -88,7 +88,7 @@ class UnitTestHeadingPID:
         self.delta_t = 0.02 # unit test simulation time step
         self.t1 = np.arange(0.0, 10.0, self.delta_t) # time vector
         self.theta_prev = 0 # theta initial condition of the Duckiebot
-        self.theta_ref = thata_ref # theta ref, the goal the Duckiebot has to reach
+        self.theta_ref = theta_ref # theta ref, the goal the Duckiebot has to reach
         self.k_r_inv = (gain + trim) / 27.0 # motor constants (scaled to simulate hardware setup)
         self.k_l_inv = (gain - trim) / 27.0
 
@@ -114,7 +114,7 @@ class UnitTestHeadingPID:
 
             # Calculating wheel commands
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.thata_ref, theta_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.theta_ref, theta_hat, prev_e, prev_int, self.delta_t)
 
             self.v_0 = u[0]
             omega = u[1]
@@ -145,7 +145,7 @@ class UnitTestHeadingPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.thata_ref,theta_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.theta_ref,theta_hat, prev_e, prev_int, self.delta_t)
 
             self.v_0 = u[0]
             omega = u[1]
