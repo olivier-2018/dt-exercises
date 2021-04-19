@@ -330,27 +330,27 @@ class EncoderPoseNode(DTROS):
 
         self.time = time_now
 
-        #if self.duckiebot_is_moving:
+        if self.duckiebot_is_moving:
 
-        if self.PID_ACTIVITY:
-            u, self.prev_e, self.prev_int = PID_controller.PIDController(
-                self.v_0,
-                self.theta_ref,
-                self.theta_curr,
-                self.prev_e,
-                self.prev_int,
-                delta_time
-            )
+            if self.PID_ACTIVITY:
+                u, self.prev_e, self.prev_int = PID_controller.PIDController(
+                    self.v_0,
+                    self.theta_ref,
+                    self.theta_curr,
+                    self.prev_e,
+                    self.prev_int,
+                    delta_time
+                )
 
-        elif self.PID_EXERCISE:
-            u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
-                self.v_0,
-                self.y_ref,
-                self.y_curr,
-                self.prev_e,
-                self.prev_int,
-                delta_time
-            )
+            elif self.PID_EXERCISE:
+                u, self.prev_e, self.prev_int = PID_controller_homework.PIDController(
+                    self.v_0,
+                    self.y_ref,
+                    self.y_curr,
+                    self.prev_e,
+                    self.prev_int,
+                    delta_time
+                )
         else:
             u = [self.v_0, 0.0]
 
