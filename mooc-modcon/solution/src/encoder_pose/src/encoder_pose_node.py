@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
+import os
+import time
+
 import numpy as np
 import rospy
-
+import yaml
 from duckietown.dtros import DTROS, NodeType, TopicType
-from duckietown_msgs.msg import WheelEncoderStamped, Twist2DStamped
-from geometry_msgs.msg import PoseStamped
+from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped, EpisodeStart
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 
 import odometry_activity
 import PID_controller
 import PID_controller_homework
-
-
-import os
-import yaml
-import time
 
 
 class EncoderPoseNode(DTROS):
@@ -62,15 +59,16 @@ class EncoderPoseNode(DTROS):
         self.prev_int = 0  # previous tracking error integral, starts at 0
         self.time = 0
 
-        self.v_0 = 0  # fixed robot linear velocity - starts at zero so the activities start on command inside VNC
-        self.y_ref = 0 #reference y for PID lateral control activity
-        self.theta_ref = 0*np.pi/180 # initial reference signal for heading control activity
-        self.omega = 0.0 # initializing omega command to the robot
+        self.v_0 = 0  # fixed robot linear velocity - starts at zero so the activities start on command
+        # inside VNC
+        self.y_ref = 0  # reference y for PID lateral control activity
+        self.theta_ref = 0 * np.pi / 180  # initial reference signal for heading control activity
+        self.omega = 0.0  # initializing omega command to the robot
 
         # nominal R and L:
         print("Loading kinematics calibration...")
-        self.R = 0.0318 # meters, default value of wheel radius
-        self.baseline = 0.1 # meters, default value of baseline
+        self.R = 0.0318  # meters, default value of wheel radius
+        self.baseline = 0.1  # meters, default value of baseline
         self.read_params_from_calibration_file()
 
         # Used for AIDO evaluation
@@ -120,6 +118,14 @@ class EncoderPoseNode(DTROS):
             queue_size=1
         )
 
+        episode_start_topic = f'/{self.veh}/episode_start'
+        _ = rospy.Subscriber(
+            episode_start_topic,
+            EpisodeStart,
+            self.cbEpisodeStart,
+            queue_size=1
+        )
+
         # Odometry publisher
         self.db_estimated_pose = rospy.Publisher(
             f'/{self.veh}/encoder_localization',
@@ -139,12 +145,11 @@ class EncoderPoseNode(DTROS):
 
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
-        self.duckiebot_is_moving=False
+        self.duckiebot_is_moving = False
         self.STOP = False
 
-
-        #rospy.Timer(rospy.Duration(0.1), self.Controller)
-        #rospy.Timer(rospy.Duration(0.02), self.posePublisher)
+        # rospy.Timer(rospy.Duration(0.1), self.Controller)
+        # rospy.Timer(rospy.Duration(0.02), self.posePublisher)
 
         # For encoders syncronization:
         self.RIGHT_RECEIVED = False
@@ -153,20 +158,24 @@ class EncoderPoseNode(DTROS):
         self.log("Initialized!")
         print("Initialized!")
 
+    def cbEpisodeStart(self, msg: EpisodeStart):
+        msg.episode_name
+        msg.payload_yaml
+        
     def cbPIDparam(self, msg):
         PID_parameters = msg.data
 
-        if PID_parameters=="STOP":
+        if PID_parameters == "STOP":
             self.publishCmd([0, 0])
             self.STOP = True
             print("STOP")
             return
 
-        PID_parameters=PID_parameters.split(";")
+        PID_parameters = PID_parameters.split(";")
         print(PID_parameters)
 
         if self.PID_ACTIVITY:
-            self.theta_ref = float(PID_parameters[0])*np.pi/180
+            self.theta_ref = float(PID_parameters[0]) * np.pi / 180
 
         elif self.PID_EXERCISE:
             self.y_ref = float(PID_parameters[0])
@@ -180,8 +189,7 @@ class EncoderPoseNode(DTROS):
             # in order to restart the controller.
             self.publishCmd([self.v_0, self.omega])
 
-            self.STOP=False
-
+            self.STOP = False
 
     def cbActivity(self, msg):
         """
@@ -258,14 +266,14 @@ class EncoderPoseNode(DTROS):
         if self.STOP or not self.SIM_STARTED or not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
             return
 
-        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False # synch incoming messages from encoders
+        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False  # synch incoming messages from encoders
 
         self.x_curr, self.y_curr, theta_curr = odometry_activity.poseEstimation(
             self.R, self.baseline,
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
-        self.theta_curr = self.angle_clamp(theta_curr) # angle always between 0,2pi
+        self.theta_curr = self.angle_clamp(theta_curr)  # angle always between 0,2pi
 
         # Printing to screen for debugging purposes
         print("              ODOMETRY             ")
@@ -273,7 +281,8 @@ class EncoderPoseNode(DTROS):
         print(
             f"Theta : {np.rad2deg(self.theta_curr)} deg,  x: {self.x_curr} m,  y: {self.y_curr} m")
         print(
-            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)} deg,   Rotation right wheel : {np.rad2deg(self.delta_phi_right)} deg")
+            f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)} deg,   Rotation right wheel : "
+            f"{np.rad2deg(self.delta_phi_right)} deg")
         print(
             f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
         # print(
@@ -281,7 +290,7 @@ class EncoderPoseNode(DTROS):
         print()
 
         self.duckiebot_is_moving = (abs(self.delta_phi_left)
-                               > 0 or abs(self.delta_phi_right) > 0)
+                                    > 0 or abs(self.delta_phi_right) > 0)
         # if duckiebot_is_moving:
         #     self.prev_int=0
         #     self.prev_e=0
@@ -307,13 +316,13 @@ class EncoderPoseNode(DTROS):
         # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.y = 0
         # these are quaternions - stuff for a different course!
-        odom.pose.pose.orientation.z = np.sin(self.theta_curr/2)
+        odom.pose.pose.orientation.z = np.sin(self.theta_curr / 2)
         # these are quaternions - stuff for a different course!
-        odom.pose.pose.orientation.w = np.cos(self.theta_curr/2)
+        odom.pose.pose.orientation.w = np.cos(self.theta_curr / 2)
 
         self.db_estimated_pose.publish(odom)
 
-        if (self.PID_ACTIVITY or self.PID_EXERCISE): # and duckiebot_is_moving:
+        if (self.PID_ACTIVITY or self.PID_EXERCISE):  # and duckiebot_is_moving:
             self.Controller()
 
     def Controller(self):
@@ -326,7 +335,7 @@ class EncoderPoseNode(DTROS):
             return
 
         time_now = time.time()
-        delta_time = time_now-self.time
+        delta_time = time_now - self.time
 
         self.time = time_now
 
