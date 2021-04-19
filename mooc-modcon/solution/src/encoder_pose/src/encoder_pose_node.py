@@ -159,7 +159,8 @@ class EncoderPoseNode(DTROS):
         print("Initialized!")
 
     def cbEpisodeStart(self, msg: EpisodeStart):
-        msg.episode_name
+        self.log(msg.episode_name)
+        self.log(msg.payload_yaml)
         assert msg.payload_yaml == '42'
 
     def cbPIDparam(self, msg):
