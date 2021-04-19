@@ -14,6 +14,8 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 - 🚙 Clean and update your Duckiebot: `dts duckiebot update ROBOTNAME` (where `ROBOTNAME` is the name of your Duckiebot chosen during the initialization procedure.)
 
+- 🚙 Reboot your Duckiebot. 
+
 ## Execute the activities
 
 - Clone this repository.
@@ -28,4 +30,4 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 ## Submit the homework
 
-- After completing the activities, you can proceed to `/06-PID-Control-Homework` and follow the instructions to submit your assignment. 
+- After completing the activities, you can proceed to `/06-PID-Control-Homework` and follow the instructions to submit your assignment.
