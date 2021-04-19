@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[5]:
+# In[1]:
 
 
 import numpy as np
@@ -12,13 +12,16 @@ import numpy as np
 def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as input
     """
     Args:
-        delta_phi_right (:double:) delta phi right.
-        delta_phi_left (:double:) delta phi left.
-        prev_e (:double:) previous error.
-        delta_t (:double:) delta time.
+        v_0 (:double:) linear Duckiebot speed (given).
+        theta_ref (:double:) reference heading pose
+        theta_hat (:double:) the current estiamted theta.
+        prev_e_y (:double:) tracking error at previous iteration.
+        prev_int_y (:double:) previous integral error term.
+        delta_t (:double:) time interval since last call.
     returns:
-        u (:double:) control command for omega and v_0 (constant).
-        current_e (:double:) current tracking error.
+        u (:list:) 1x2 array of commands for the Duckiebot: [v0, omega] 
+        current_e (:double:) current tracking error (automatically becomes prev_e_y at next iteration).
+        current_int_e (:double:) current integral error (automatically becomes prev_int_y at next iteration).
     """
     
     # Tracking error

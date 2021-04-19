@@ -6,7 +6,8 @@ import numpy as np
 import rospy
 import yaml
 from duckietown.dtros import DTROS, NodeType, TopicType
-from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped, EpisodeStart
+from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped
+#, EpisodeStart
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 
@@ -118,13 +119,13 @@ class EncoderPoseNode(DTROS):
             queue_size=1
         )
 
-        episode_start_topic = f'/{self.veh}/episode_start'
-        _ = rospy.Subscriber(
-            episode_start_topic,
-            EpisodeStart,
-            self.cbEpisodeStart,
-            queue_size=1
-        )
+        # episode_start_topic = f'/{self.veh}/episode_start'
+        # _ = rospy.Subscriber(
+        #     episode_start_topic,
+        #     EpisodeStart,
+        #     self.cbEpisodeStart,
+        #     queue_size=1
+        # )
 
         # Odometry publisher
         self.db_estimated_pose = rospy.Publisher(
@@ -158,21 +159,21 @@ class EncoderPoseNode(DTROS):
         self.log("Initialized!")
         print("Initialized!")
 
-    def cbEpisodeStart(self, msg: EpisodeStart):
-        self.log(msg.episode_name)
-        self.log(msg.payload_yaml)
-        """
-        
-        initial_pose:
-            y: 0.1
-            theta_deg: 32
-            
-        """
-        loaded = yaml.load(msg.payload_yaml, Loader=yaml.FullLoader)
-        ip = loaded['initial_pose']
-        y = ip['y']
-        theta_deg = ip['theta_deg']
-        # assert msg.payload_yaml == '42'
+    # def cbEpisodeStart(self, msg: EpisodeStart):
+    #     self.log(msg.episode_name)
+    #     self.log(msg.payload_yaml)
+    #     """
+    #
+    #     initial_pose:
+    #         y: 0.1
+    #         theta_deg: 32
+    #
+    #     """
+    #     loaded = yaml.load(msg.payload_yaml, Loader=yaml.FullLoader)
+    #     ip = loaded['initial_pose']
+    #     y = ip['y']
+    #     theta_deg = ip['theta_deg']
+    #     # assert msg.payload_yaml == '42'
 
     def cbPIDparam(self, msg):
         PID_parameters = msg.data
