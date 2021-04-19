@@ -14,7 +14,7 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 - 🚙 Clean and update your Duckiebot: `dts duckiebot update ROBOTNAME` (where `ROBOTNAME` is the name of your Duckiebot chosen during the initialization procedure.)
 
-- 🚙 Reboot your Duckiebot. 
+- 🚙 Reboot your Duckiebot.
 
 ## Execute the activities
 
@@ -22,7 +22,7 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 - Build the workspace: `dts exercises build`.
 
-- Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser. The login password is `quackquack`.
+- Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser. The login password is `quackquack`. Make sure you do not have other Jupyter notebooks already open.
 
 - Go to the first folder (`01-Representations`), open the notebook file, and follow through.
 
