@@ -1,7 +1,7 @@
 payload_yaml: |
    initial_pose:
-       y: 0.1
-       theta_deg: 32
+       y: 0.2
+       theta_deg: 0.0
 robots:
   ego0:
     color: blue
@@ -10,9 +10,9 @@ robots:
     controllable: true
     configuration:
       pose:
-        x: 12.98699951171875
-        y: 2.53917686005821
-        theta_deg: 25.73541151257021
+        x: 1.2
+        y: 2.68
+        theta_deg: 0.0
       velocity:
         x: 0.0
         y: 0.0
