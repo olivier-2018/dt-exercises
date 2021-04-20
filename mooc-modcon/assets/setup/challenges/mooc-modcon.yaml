@@ -1,8 +1,7 @@
 challenge: mooc-modcon
 
-title: "MOOC 🚗 - ModCon"
-tags: [visible, ml-testing, aido, aido-embodied, LF, v4, simulation, protocol-normal,
-      competition]
+title: "MOOC - ModCon"
+tags: [visible, ml-validation, aido, aido-embodied, LF, v4, simulation, protocol-normal]
 description: |
   This is the challenge to test the PID controller of the MOOC's modcon exercise.
 
@@ -14,7 +13,7 @@ description: |
 protocol: aido2_db18_agent-z2
 
 
-date-open: 2021-01-31T00:00Z
+date-open: 2021-01-30T00:00Z
 date-close: 2021-12-31T00:00Z
 
 
