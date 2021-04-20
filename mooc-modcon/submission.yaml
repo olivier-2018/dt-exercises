@@ -1,6 +1,6 @@
 #challenge: # defaults to all compatible challenges
 #  - aido2-LF-sim-testing
-#challenge: [mooc-ePID]
+challenge: [MOOC-modcon]
 
 protocol: aido2_db18_agent-z2
 user-label: "template-ros"
