@@ -266,6 +266,7 @@ class EncoderPoseNode(DTROS):
             self.right_tick_prev = ticks
             return
 
+        # calculate rotation of right wheel
         delta_phi_right, self.right_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.right_tick_prev)
         self.delta_phi_right += delta_phi_right
@@ -310,9 +311,7 @@ class EncoderPoseNode(DTROS):
 
         self.duckiebot_is_moving = (abs(self.delta_phi_left)
                                     > 0 or abs(self.delta_phi_right) > 0)
-        # if duckiebot_is_moving:
-        #     self.prev_int=0
-        #     self.prev_e=0
+
         # Calculate new odometry only when new data from encoders arrives
         self.delta_phi_left = self.delta_phi_right = 0
 
@@ -332,16 +331,13 @@ class EncoderPoseNode(DTROS):
 
         # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.x = 0
-        # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.y = 0
-        # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.z = np.sin(self.theta_curr / 2)
-        # these are quaternions - stuff for a different course!
         odom.pose.pose.orientation.w = np.cos(self.theta_curr / 2)
 
         self.db_estimated_pose.publish(odom)
 
-        if (self.PID_ACTIVITY or self.PID_EXERCISE):  # and duckiebot_is_moving:
+        if (self.PID_ACTIVITY or self.PID_EXERCISE): # run the contoller only in appropriate activities
             self.Controller()
 
     def Controller(self):
@@ -349,7 +345,6 @@ class EncoderPoseNode(DTROS):
         Calculate theta and perform the control actions given by the PID
         """
         # Do nothing if the PID activity is not set
-
         if not self.SIM_STARTED:
             return
 
