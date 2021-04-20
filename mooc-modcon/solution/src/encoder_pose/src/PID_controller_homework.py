@@ -6,7 +6,11 @@
 
 import numpy as np
 
-# write the PID controller function for y postion control.
+# Lateral control
+
+# TODO: write the PID controller using what you've learned in the previous activities
+
+# Note: y_hat will be calculated based on your DeltaPhi() and poseEstimate() functions written previously 
 
 def PIDController(
     v_0,

@@ -7,9 +7,8 @@
 import numpy as np
 
 # Heading control
-# Do not change the name of the function, inputs or outputs. It will break things.
 
-def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t): #add theta_ref as input
+def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t):
     """
     Args:
         v_0 (:double:) linear Duckiebot speed (given).
