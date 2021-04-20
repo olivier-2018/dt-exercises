@@ -7,7 +7,7 @@ import rospy
 import yaml
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped
-#, EpisodeStart
+# , EpisodeStart
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 
@@ -33,12 +33,12 @@ class EncoderPoseNode(DTROS):
     """
 
     def __init__(self, node_name):
-        self.log("Initializing...")
         # Initialize the DTROS parent class
         super(EncoderPoseNode, self).__init__(
             node_name=node_name,
             node_type=NodeType.LOCALIZATION
         )
+        self.log("Initializing...")
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
 
@@ -88,7 +88,7 @@ class EncoderPoseNode(DTROS):
         # Active only when submitting and evaluating (PID Exercise)
         if self.AIDO_eval:
             self.PID_EXERCISE = True
-            self.v_0=0.2
+            self.v_0 = 0.2
             self.log("Starting evaluation for PID lateral controller.")
 
         # Defining subscribers:
@@ -286,14 +286,16 @@ class EncoderPoseNode(DTROS):
         if self.STOP or not self.SIM_STARTED or not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
             return
 
-        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False  # synch incoming messages from encoders
+        # synch incoming messages from encoders
+        self.LEFT_RECEIVED = self.RIGHT_RECEIVED = False
 
         self.x_curr, self.y_curr, theta_curr = odometry_activity.poseEstimation(
             self.R, self.baseline,
             self.x_prev, self.y_prev, self.theta_prev,
             self.delta_phi_left, self.delta_phi_right)
 
-        self.theta_curr = self.angle_clamp(theta_curr)  # angle always between 0,2pi
+        self.theta_curr = self.angle_clamp(
+            theta_curr)  # angle always between 0,2pi
 
         # self.loging to screen for debugging purposes
         self.log("              ODOMETRY             ")
@@ -337,7 +339,12 @@ class EncoderPoseNode(DTROS):
 
         self.db_estimated_pose.publish(odom)
 
+<<<<<<< HEAD
         if (self.PID_ACTIVITY or self.PID_EXERCISE): # run the contoller only in appropriate activities
+=======
+        # and duckiebot_is_moving:
+        if (self.PID_ACTIVITY or self.PID_EXERCISE):
+>>>>>>> 84d4c8bbeabb5678ba83fe2f500fa9a0cee92f84
             self.Controller()
 
     def Controller(self):
