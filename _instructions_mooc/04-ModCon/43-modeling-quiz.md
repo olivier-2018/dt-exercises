@@ -27,7 +27,7 @@ Modeling of a differential drive robot
 [ ] A dynamic model.
 
 [explanation]
-We have derived a kinematics model for a differential drive vehicle. Kinematics studies the relation of position, velocity, and accelerations of geometric points. This means we have purposefully ignored the vehicle dynamics. A dynamic model would have included considerations on the mass of the vehicle, and forces and torques at play.  
+We have derived a kinematic model for a differential drive vehicle. Kinematics studies the relation of position, velocity, and accelerations of geometric points. This means we have purposefully ignored the vehicle dynamics. A dynamic model would have included considerations on the mass of the vehicle, and forces and torques at play.  
 [explanation]
 
 >> Why is the kinematics model of the Duckiebot wrong? <<
