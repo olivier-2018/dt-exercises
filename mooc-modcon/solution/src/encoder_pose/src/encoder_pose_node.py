@@ -339,12 +339,7 @@ class EncoderPoseNode(DTROS):
 
         self.db_estimated_pose.publish(odom)
 
-<<<<<<< HEAD
         if (self.PID_ACTIVITY or self.PID_EXERCISE): # run the contoller only in appropriate activities
-=======
-        # and duckiebot_is_moving:
-        if (self.PID_ACTIVITY or self.PID_EXERCISE):
->>>>>>> 84d4c8bbeabb5678ba83fe2f500fa9a0cee92f84
             self.Controller()
 
     def Controller(self):
