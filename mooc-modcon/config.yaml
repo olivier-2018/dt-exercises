@@ -23,6 +23,7 @@
 # agent_run_cmd: "run_all.sh" # the script in "launchers" to run the agent with
 
 
+#challenge: "MOOC-modcon"
 
 agent_base: "duckietown_baseline"
 ws_dir: "solution" # directory that contains the code the user needs to see
