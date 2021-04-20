@@ -216,9 +216,9 @@ class EncoderPoseNode(DTROS):
         self.ODOMETRY_ACTIVITY = False
         self.PID_EXERCISE = False
 
-        self.log()
+        self.log("")
         self.log(f"Received activity {msg.data}")
-        self.log()
+        self.log("")
 
         self.ODOMETRY_ACTIVITY = msg.data == "odometry"
         self.PID_ACTIVITY = msg.data == "pid"
@@ -309,7 +309,6 @@ class EncoderPoseNode(DTROS):
             f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
         # self.log(
         #     f"Prev integral error : {self.prev_int}")
-        self.log()
 
         self.duckiebot_is_moving = (abs(self.delta_phi_left)
                                     > 0 or abs(self.delta_phi_right) > 0)
