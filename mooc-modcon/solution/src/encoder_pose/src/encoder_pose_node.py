@@ -41,13 +41,16 @@ class EncoderPoseNode(DTROS):
         )
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
+
         # Add the node parameters to the parameters dictionary
+
         self.delta_phi_left = 0
         self.left_tick_prev = ""
 
         self.delta_phi_right = 0
         self.right_tick_prev = ""
 
+        # Initializing the odometry
         self.x_prev = 0
         self.y_prev = 0
         self.theta_prev = 0
@@ -56,13 +59,14 @@ class EncoderPoseNode(DTROS):
         self.y_curr = 0
         self.theta_curr = 0
 
+        # Initializing the PID controller parameters
         self.prev_e = 0  # previous tracking error, starts at 0
         self.prev_int = 0  # previous tracking error integral, starts at 0
         self.time = 0
 
         self.v_0 = 0  # fixed robot linear velocity - starts at zero so the activities start on command
         # inside VNC
-        self.y_ref = 0  # reference y for PID lateral control activity
+        self.y_ref = 0  # reference y for PID lateral control activity - zero so can be set interactively at runtime
         self.theta_ref = 0 * np.pi / 180  # initial reference signal for heading control activity
         self.omega = 0.0  # initializing omega command to the robot
 
@@ -70,17 +74,18 @@ class EncoderPoseNode(DTROS):
         self.log("Loading kinematics calibration...")
         self.R = 0.0318  # meters, default value of wheel radius
         self.baseline = 0.1  # meters, default value of baseline
-        self.read_params_from_calibration_file()
+        self.read_params_from_calibration_file() # must have a custom robot calibration
 
         # Used for AIDO evaluation
         self.AIDO_eval = rospy.get_param(f'/{self.veh}/AIDO_eval', False)
         self.log(f"AIDO EVAL VAR: {self.AIDO_eval}")
 
-        # Flags for a joyful learning experience :)
+        # Flags for a joyful learning experience (spins only parts of this code depending on the icons pressed on the VNC desktop)
         self.ODOMETRY_ACTIVITY = False
         self.PID_ACTIVITY = False
         self.PID_EXERCISE = False
 
+        # Active only when submitting and evaluating (PID Exercise)
         if self.AIDO_eval:
             self.PID_EXERCISE = True
             self.v_0=0.2
@@ -121,6 +126,7 @@ class EncoderPoseNode(DTROS):
             queue_size=1
         )
 
+        # # AIDO challenge payload subscriber
         # episode_start_topic = f'/{self.veh}/episode_start'
         # _ = rospy.Subscriber(
         #     episode_start_topic,
@@ -151,9 +157,6 @@ class EncoderPoseNode(DTROS):
         self.duckiebot_is_moving = False
         self.STOP = False
 
-        # rospy.Timer(rospy.Duration(0.1), self.Controller)
-        # rospy.Timer(rospy.Duration(0.02), self.posePublisher)
-
         # For encoders syncronization:
         self.RIGHT_RECEIVED = False
         self.LEFT_RECEIVED = False
@@ -164,11 +167,11 @@ class EncoderPoseNode(DTROS):
     #     self.log(msg.episode_name)
     #     self.log(msg.payload_yaml)
     #     """
-        
+
     #     initial_pose:
     #         y: 0.1
     #         theta_deg: 32
-            
+
     #     """
     #     loaded = yaml.load(msg.payload_yaml, Loader=yaml.FullLoader)
     #     ip = loaded['initial_pose']
@@ -176,6 +179,7 @@ class EncoderPoseNode(DTROS):
     #     self.theta_curr = float(ip['theta_deg'])*np.pi/180
     #     # assert msg.payload_yaml == '42'
 
+    # Emergency stop / interactive pane for PID activity and exercise
     def cbPIDparam(self, msg):
         PID_parameters = msg.data
 
@@ -188,28 +192,25 @@ class EncoderPoseNode(DTROS):
         PID_parameters = PID_parameters.split(";")
         self.log(PID_parameters)
 
+        # ref is angle in activity
         if self.PID_ACTIVITY:
             self.theta_ref = float(PID_parameters[0]) * np.pi / 180
 
+        # ref is lateral position in exercise
         elif self.PID_EXERCISE:
             self.y_ref = float(PID_parameters[0])
 
         self.v_0 = float(PID_parameters[1])
 
         if self.STOP:
-            # if the robot is not moving the wheel encoders
-            # will not receive data and so there will be no pose update
-            # for this reason we need to set a v_0 and move the robot
-            # in order to restart the controller.
             self.publishCmd([self.v_0, self.omega])
-
             self.STOP = False
 
     def cbActivity(self, msg):
         """
-        change activity accoring to the param.
+        Call the right functions according to desktop icon the parameter.
         """
-        # Reset
+
         self.PID_ACTIVITY = False
         self.publishCmd([0, 0])
         self.ODOMETRY_ACTIVITY = False
@@ -223,9 +224,10 @@ class EncoderPoseNode(DTROS):
         self.PID_ACTIVITY = msg.data == "pid"
         self.PID_EXERCISE = msg.data == "pid_exercise"
 
+        # read left encoder tick values
     def cbLeftEncoder(self, encoder_msg):
         """
-            Wheel encoder callback, the rotation of the wheel.
+            Wheel encoder callback
             Args:
                 encoder_msg (:obj:`WheelEncoderStamped`) encoder ROS message.
         """
@@ -233,14 +235,17 @@ class EncoderPoseNode(DTROS):
         if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE):
             return
 
+        # initializing ticks to stored absolute value
         if self.left_tick_prev == "":
             ticks = encoder_msg.data
             self.left_tick_prev = ticks
             return
 
+        # running the DeltaPhi() function copied from the notebooks to calculate rotations
         delta_phi_left, self.left_tick_prev = odometry_activity.DeltaPhi(
             encoder_msg, self.left_tick_prev)
         self.delta_phi_left += delta_phi_left
+
         # compute the new pose
         self.LEFT_RECEIVED = True
         self.posePublisher()
