@@ -33,7 +33,7 @@ class EncoderPoseNode(DTROS):
     """
 
     def __init__(self, node_name):
-        print("Initializing...")
+        self.log("Initializing...")
         # Initialize the DTROS parent class
         super(EncoderPoseNode, self).__init__(
             node_name=node_name,
@@ -67,14 +67,14 @@ class EncoderPoseNode(DTROS):
         self.omega = 0.0  # initializing omega command to the robot
 
         # nominal R and L:
-        print("Loading kinematics calibration...")
+        self.log("Loading kinematics calibration...")
         self.R = 0.0318  # meters, default value of wheel radius
         self.baseline = 0.1  # meters, default value of baseline
         self.read_params_from_calibration_file()
 
         # Used for AIDO evaluation
         self.AIDO_eval = rospy.get_param(f'/{self.veh}/AIDO_eval', False)
-        print(f"AIDO EVAL VAR: {self.AIDO_eval}")
+        self.log(f"AIDO EVAL VAR: {self.AIDO_eval}")
 
         # Flags for a joyful learning experience :)
         self.ODOMETRY_ACTIVITY = False
@@ -83,6 +83,8 @@ class EncoderPoseNode(DTROS):
 
         if self.AIDO_eval:
             self.PID_EXERCISE = True
+            self.v_0=0.2
+            self.log("Starting evaluation for PID lateral controller.")
 
         # Defining subscribers:
 
@@ -157,22 +159,21 @@ class EncoderPoseNode(DTROS):
         self.LEFT_RECEIVED = False
 
         self.log("Initialized!")
-        print("Initialized!")
 
     # def cbEpisodeStart(self, msg: EpisodeStart):
     #     self.log(msg.episode_name)
     #     self.log(msg.payload_yaml)
     #     """
-    #
+        
     #     initial_pose:
     #         y: 0.1
     #         theta_deg: 32
-    #
+            
     #     """
     #     loaded = yaml.load(msg.payload_yaml, Loader=yaml.FullLoader)
     #     ip = loaded['initial_pose']
-    #     y = ip['y']
-    #     theta_deg = ip['theta_deg']
+    #     self.y_curr = float(ip['y'])
+    #     self.theta_curr = float(ip['theta_deg'])*np.pi/180
     #     # assert msg.payload_yaml == '42'
 
     def cbPIDparam(self, msg):
@@ -181,11 +182,11 @@ class EncoderPoseNode(DTROS):
         if PID_parameters == "STOP":
             self.publishCmd([0, 0])
             self.STOP = True
-            print("STOP")
+            self.log("STOP")
             return
 
         PID_parameters = PID_parameters.split(";")
-        print(PID_parameters)
+        self.log(PID_parameters)
 
         if self.PID_ACTIVITY:
             self.theta_ref = float(PID_parameters[0]) * np.pi / 180
@@ -214,9 +215,9 @@ class EncoderPoseNode(DTROS):
         self.ODOMETRY_ACTIVITY = False
         self.PID_EXERCISE = False
 
-        print()
-        print(f"Received activity {msg.data}")
-        print()
+        self.log()
+        self.log(f"Received activity {msg.data}")
+        self.log()
 
         self.ODOMETRY_ACTIVITY = msg.data == "odometry"
         self.PID_ACTIVITY = msg.data == "pid"
@@ -288,19 +289,19 @@ class EncoderPoseNode(DTROS):
 
         self.theta_curr = self.angle_clamp(theta_curr)  # angle always between 0,2pi
 
-        # Printing to screen for debugging purposes
-        print("              ODOMETRY             ")
-        # print(f"Baseline : {self.baseline}   R: {self.R}")
-        print(
+        # self.loging to screen for debugging purposes
+        self.log("              ODOMETRY             ")
+        # self.log(f"Baseline : {self.baseline}   R: {self.R}")
+        self.log(
             f"Theta : {np.rad2deg(self.theta_curr)} deg,  x: {self.x_curr} m,  y: {self.y_curr} m")
-        print(
+        self.log(
             f"Rotation left wheel : {np.rad2deg(self.delta_phi_left)} deg,   Rotation right wheel : "
             f"{np.rad2deg(self.delta_phi_right)} deg")
-        print(
+        self.log(
             f"Prev Ticks left : {self.left_tick_prev}   Prev Ticks right : {self.right_tick_prev}")
-        # print(
+        # self.log(
         #     f"Prev integral error : {self.prev_int}")
-        print()
+        self.log()
 
         self.duckiebot_is_moving = (abs(self.delta_phi_left)
                                     > 0 or abs(self.delta_phi_right) > 0)
@@ -420,7 +421,7 @@ class EncoderPoseNode(DTROS):
         with open(fname, 'r') as in_file:
             try:
                 yaml_dict = yaml.load(in_file)
-                print(yaml_dict)
+                self.log(yaml_dict)
                 self.R = yaml_dict['radius']
                 self.baseline = yaml_dict['baseline']
             except yaml.YAMLError as exc:
