@@ -132,15 +132,6 @@ class EncoderPoseNode(DTROS):
         self.log("Initialized!")
 
     def cbEpisodeStart(self, msg: EpisodeStart):
-        self.log(msg.episode_name)
-        self.log(msg.other_payload_yaml)
-        """
-
-        initial_pose:
-            y: 0.1
-            theta_deg: 32
-
-        """
         loaded = yaml.load(msg.other_payload_yaml, Loader=yaml.FullLoader)
         ip = loaded['initial_pose']
         self.y_prev = float(ip['y'])
