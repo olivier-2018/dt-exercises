@@ -121,6 +121,7 @@ class EncoderPoseNode(DTROS):
 
         # Wait until the encoders data is received, then start the controller
         self.SIM_STARTED = False
+        self.EPISODE_STARTED = False
         self.duckiebot_is_moving = False
         self.STOP = False
 
@@ -141,10 +142,10 @@ class EncoderPoseNode(DTROS):
 
         """
         loaded = yaml.load(msg.other_payload_yaml, Loader=yaml.FullLoader)
-        ip = loaded["initial_pose"]
-        self.y_curr = float(ip["y"])
-        self.theta_curr = float(ip["theta_deg"]) * np.pi / 180
-        # assert msg.payload_yaml == '42'
+        ip = loaded['initial_pose']
+        self.y_prev = float(ip['y'])
+        self.theta_prev = float(ip['theta_deg']) * np.pi/180
+        self.EPISODE_STARTED = True
 
     # Emergency stop / interactive pane for PID activity and exercise
     def cbPIDparam(self, msg):
