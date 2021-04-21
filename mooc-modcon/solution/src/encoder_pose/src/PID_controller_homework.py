@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[13]:
 
 
 import numpy as np
@@ -13,15 +13,15 @@ import numpy as np
 # Note: y_hat will be calculated based on your DeltaPhi() and poseEstimate() functions written previously 
 
 def PIDController(
-    v_0,
-    y_ref,
-    y_hat, 
-    prev_e_y, 
-    prev_int_y, 
-    delta_t):
+    v_0, # assume given
+    y_ref, # assume given
+    y_hat, # assume given (by the odometry)
+    prev_e_y, # assume given
+    prev_int_y, # assume given
+    delta_t): # assume given
     """
     Args:
-        v_0 (:double:) linear Duckiebot speed (given).
+        v_0 (:double:) linear Duckiebot speed.
         y_ref (:double:) reference lateral pose
         y_hat (:double:) the current estiamted pose along y.
         prev_e_y (:double:) tracking error at previous iteration.
@@ -61,7 +61,7 @@ def PIDController(
     u = [v_0, omega]
     
     # Debugging 
-    print(f"\n\nDelta time : {delta_t} \nE : {e_y} \ne_int : {e_int_y} \ne_der : {e_der_y} \nU : {u} \ny_hat: {y_hat} \ny_ref: {y_ref}")
+    # print(f"\n\nDelta time : {delta_t} \nE : {e_y} \ne_int : {e_int_y} \ne_der : {e_der_y} \nU : {u} \ny_hat: {y_hat} \ny_ref: {y_ref}")
 
     
     return u, e_y, e_int_y

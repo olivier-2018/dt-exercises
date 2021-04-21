@@ -8,6 +8,8 @@
 # Put together the steps above and write your DeltaPhi function! 
 # DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
 
+#TODO: write a correct function
+
 def DeltaPhi(encoder_msg, prev_ticks):
     """
         Args:
@@ -27,8 +29,6 @@ def DeltaPhi(encoder_msg, prev_ticks):
     
     
 #     delta_phi = None # in radians
-    
-    
     
     
     
