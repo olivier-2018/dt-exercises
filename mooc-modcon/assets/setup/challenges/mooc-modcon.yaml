@@ -55,7 +55,7 @@ steps:
               terminate_on_ool: false
               terminate_on_out_of_tile: true
               terminate_on_collision: true
-              topdown_resolution: 300
+              topdown_resolution: 900
               max_pixel_mov: 1000
               debug_profile: False
               debug_profile_summary: True
