@@ -13,12 +13,12 @@ import numpy as np
 # Note: y_hat will be calculated based on your DeltaPhi() and poseEstimate() functions written previously 
 
 def PIDController(
-    v_0, # assume given
-    y_ref, # assume given
+    v_0, # assume given (by the scenario)
+    y_ref, # assume given (by the scenario)
     y_hat, # assume given (by the odometry)
-    prev_e_y, # assume given
-    prev_int_y, # assume given
-    delta_t): # assume given
+    prev_e_y, # assume given (by the previous iteration of this function)
+    prev_int_y, # assume given (by the previous iteration of this function)
+    delta_t): # assume given (by the simulator)
     """
     Args:
         v_0 (:double:) linear Duckiebot speed.
