@@ -11,7 +11,7 @@ robots:
     configuration:
       pose:
         x: 1.2
-        y: 2.68
+        y: 2.71025
         theta_deg: 0.0
       velocity:
         x: 0.0
