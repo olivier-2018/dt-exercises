@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import time
+from typing import Optional
 
 import numpy as np
 import rospy
@@ -356,7 +357,7 @@ class EncoderPoseNode(DTROS):
         self.pub_car_cmd.publish(car_control_msg)
 
     def onShutdown(self):
-        super(EncoderPoseNode, self).onShutdown()
+        super(EncoderPoseNode, self).on_shutdown()
 
     def read_params_from_calibration_file(self):
         """
