@@ -6,7 +6,6 @@ class UnitTestMessage:
     def __init__(self, callback):
         from duckietown_msgs.msg import WheelEncoderStamped
         from std_msgs.msg import Header
-        import time
 
         # creating a dummy wheel encoder message to allow testing how to read fields
 
@@ -18,10 +17,7 @@ class UnitTestMessage:
         header.frame_id = f"agent/left_wheel_axis"
 
         encoder_msg = WheelEncoderStamped(
-            header=header,
-            data=4,
-            resolution=135,
-            type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
+            header=header, data=4, resolution=135, type=WheelEncoderStamped.ENCODER_TYPE_INCREMENTAL
         )
 
         callback(encoder_msg)
@@ -37,17 +33,19 @@ class UnitTestOdometry:
         y_prev_ = []
         theta_prev_ = []
 
-        x, y, robot_rotation = poseEstimation(R,
-                                              baseline_wheel2wheel,
-                                              x_prev,
-                                              y_prev,
-                                              theta_prev,
-                                              5*np.pi/180,  # wheel rotates of 5 degree
-                                              10*np.pi/180)  # wheel rotates of 10 degree
+        x, y, robot_rotation = poseEstimation(
+            R,
+            baseline_wheel2wheel,
+            x_prev,
+            y_prev,
+            theta_prev,
+            5 * np.pi / 180,  # wheel rotates of 5 degree
+            10 * np.pi / 180,
+        )  # wheel rotates of 10 degree
         # given how much the robot rotates with wheels rotation of 5 and 10 degree,
         # calculate the number of steps required to do a circle.
         # this is indipendent fro R and the baseline int this way!
-        steps4circle = int(2*np.pi/robot_rotation)
+        steps4circle = int(2 * np.pi / robot_rotation)
 
         # iterate steps4circle times the pose estiamtion.
         for _ in range(0, steps4circle):
@@ -55,27 +53,30 @@ class UnitTestOdometry:
             x_prev_.append(x_prev)
             y_prev_.append(y_prev)
             theta_prev_.append(theta_prev)
-            x_prev, y_prev, theta_prev = poseEstimation(R,
-                                                        baseline_wheel2wheel,
-                                                        x_prev,
-                                                        y_prev,
-                                                        theta_prev,
-                                                        5*np.pi/180,  # wheel rotates of 5 degree
-                                                        10*np.pi/180)  # wheel rotates of 10 degree
+            x_prev, y_prev, theta_prev = poseEstimation(
+                R,
+                baseline_wheel2wheel,
+                x_prev,
+                y_prev,
+                theta_prev,
+                5 * np.pi / 180,  # wheel rotates of 5 degree
+                10 * np.pi / 180,
+            )  # wheel rotates of 10 degree
         # plot the results
         self.plot(x_prev_, y_prev_, theta_prev_)
 
     def plot(self, x, y, theta):
         import matplotlib.pyplot as plt
+
         figure, axes = plt.subplots(1)
 
-        axes.plot(x, y, 'r')
+        axes.plot(x, y, "r")
         axes.set_aspect(1)
 
         plt.xlabel("X position")
         plt.ylabel("Y position")
 
-        plt.title('Am I a circle?')
+        plt.title("Am I a circle?")
         plt.show()
 
 
@@ -105,8 +106,7 @@ class UnitTestHeadingPID:
         u_l_ = []
 
         for _ in self.t1:
-            theta_hat, u_r, u_l = self.sim(
-                omega, self.v_0, self.delta_t)  # simulate driving
+            theta_hat, u_r, u_l = self.sim(omega, self.v_0, self.delta_t)  # simulate driving
 
             # For plotting
             theta_hat_.append(theta_hat)
@@ -116,14 +116,14 @@ class UnitTestHeadingPID:
 
             # Calculating wheel commands
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.theta_ref, theta_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.theta_ref, theta_hat, prev_e, prev_int, self.delta_t
+            )
 
             self.v_0 = u[0]
             omega = u[1]
 
         # plot the theta_hat and the error on theta
-        self.plot_pose(theta_hat_, err_, "Duckiebot heading (Theta)",
-                       "Time (s)", "Theta (Degree)")
+        self.plot_pose(theta_hat_, err_, "Duckiebot heading (Theta)", "Time (s)", "Theta (Degree)")
         # plot the control inputs
         self.plot_input(u_r_, u_l_, "Control inputs", "Time (s)", "PWM")
 
@@ -148,14 +148,14 @@ class UnitTestHeadingPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.theta_ref, theta_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.theta_ref, theta_hat, prev_e, prev_int, self.delta_t
+            )
 
             self.v_0 = u[0]
             omega = u[1]
 
         # plot theta with noise and the error on theta
-        self.plot_pose(theta_hat_, err_, "Theta with noise",
-                       "Time (s)", "Theta (Degree)")
+        self.plot_pose(theta_hat_, err_, "Theta with noise", "Time (s)", "Theta (Degree)")
         # plot the input to the wheels
         self.plot_input(u_r_, u_l_, "Control inputs", "Time (s)", "PWM")
 
@@ -165,15 +165,14 @@ class UnitTestHeadingPID:
         plt.title(title)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
-        plt.xticks(np.arange(0, len(u_l)+1, 1))
+        plt.xticks(np.arange(0, len(u_l) + 1, 1))
 
         # plot the control inputs
-        plt.axis([0, 10, np.min([np.min(u_r), np.min(u_l)]),
-                 np.max([np.max(u_r), np.max(u_l)])])
+        plt.axis([0, 10, np.min([np.min(u_r), np.min(u_l)]), np.max([np.max(u_r), np.max(u_l)])])
 
-        plt.plot(self.t1, (u_r), 'r--', self.t1, (u_l), 'b--')
+        plt.plot(self.t1, (u_r), "r--", self.t1, (u_l), "b--")
 
-        plt.legend(['Right wheel', 'Left wheel'])
+        plt.legend(["Right wheel", "Left wheel"])
         plt.show()
 
     def plot_pose(self, theta_hat_, err_, title, x_label, y_label):
@@ -182,51 +181,56 @@ class UnitTestHeadingPID:
         plt.title(title)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
-        plt.xticks(np.arange(0, len(theta_hat_)+1, 1))
+        plt.xticks(np.arange(0, len(theta_hat_) + 1, 1))
 
         theta_hat_deg = []
         for el in theta_hat_:
-            theta_hat_deg.append(el*180/np.pi)
+            theta_hat_deg.append(el * 180 / np.pi)
         err_deg = []
         for el in err_:
-            err_deg.append(el*180/np.pi)
+            err_deg.append(el * 180 / np.pi)
 
         # plot the error and position
-        plt.axis([0, 10, np.min([np.min(theta_hat_deg), np.min(err_deg)]),
-                 np.max([np.max(theta_hat_deg), np.max(err_deg)])])
-        plt.plot(self.t1, (theta_hat_deg), 'r--', self.t1, (err_deg), 'b')
+        plt.axis(
+            [
+                0,
+                10,
+                np.min([np.min(theta_hat_deg), np.min(err_deg)]),
+                np.max([np.max(theta_hat_deg), np.max(err_deg)]),
+            ]
+        )
+        plt.plot(self.t1, (theta_hat_deg), "r--", self.t1, (err_deg), "b")
 
-        plt.legend(['Theta', 'error'])
+        plt.legend(["Theta", "error"])
         plt.show()
 
     def sim(self, omega, v, time):
-        omega_l = (v-0.5*omega*self.L)/self.R
-        omega_r = (v+0.5*omega*self.L)/self.R
+        omega_l = (v - 0.5 * omega * self.L) / self.R
+        omega_r = (v + 0.5 * omega * self.L) / self.R
 
-        delta_phi_left = time*omega_l
-        delta_phi_right = time*omega_r
+        delta_phi_left = time * omega_l
+        delta_phi_right = time * omega_r
 
-        self.theta_prev = self.theta_prev + self.R * \
-            (delta_phi_right-delta_phi_left)/(self.L)
+        self.theta_prev = self.theta_prev + self.R * (delta_phi_right - delta_phi_left) / (self.L)
 
         u_r, u_l = self.wheel_inputs(omega_r, omega_l)
 
         return self.theta_prev, u_r, u_l
 
     def sim_noise(self, omega, v, time):
-        omega_l = (v-0.5*omega*self.L)/self.R
-        omega_r = (v+0.5*omega*self.L)/self.R
+        omega_l = (v - 0.5 * omega * self.L) / self.R
+        omega_r = (v + 0.5 * omega * self.L) / self.R
 
-        delta_phi_left = time*omega_l
-        delta_phi_right = time*omega_r
+        delta_phi_left = time * omega_l
+        delta_phi_right = time * omega_r
 
         # variance of the additive measurement noise
         measurement_noise_variance_deg = 0.5
-        measurement_noise = np.random.normal(
-            0, np.deg2rad(measurement_noise_variance_deg))
+        measurement_noise = np.random.normal(0, np.deg2rad(measurement_noise_variance_deg))
 
-        self.theta_prev = self.theta_prev + self.R * \
-            (delta_phi_right-delta_phi_left)/(self.L) + measurement_noise
+        self.theta_prev = (
+            self.theta_prev + self.R * (delta_phi_right - delta_phi_left) / (self.L) + measurement_noise
+        )
 
         u_r, u_l = self.wheel_inputs(omega_r, omega_l)
 
@@ -277,7 +281,8 @@ class UnitTestPositionPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.y_ref, y_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.y_ref, y_hat, prev_e, prev_int, self.delta_t
+            )
 
             self.v_0 = u[0]
             omega = u[1]
@@ -305,15 +310,14 @@ class UnitTestPositionPID:
             u_l_.append(u_l)
 
             u, prev_e, prev_int = self.PIDController(
-                self.v_0, self.y_ref, y_hat, prev_e, prev_int, self.delta_t)
+                self.v_0, self.y_ref, y_hat, prev_e, prev_int, self.delta_t
+            )
 
             self.v_0 = u[0]
             omega = u[1]
 
-        self.plot_pose(y_hat_, err_, "With noise",
-                       "Time steps (0.2 s)", "Y (m)")
-        self.plot_input(u_r_, u_l_, "Control inputs",
-                        "Time steps (0.2 s)", "PWM")
+        self.plot_pose(y_hat_, err_, "With noise", "Time steps (0.2 s)", "Y (m)")
+        self.plot_input(u_r_, u_l_, "Control inputs", "Time steps (0.2 s)", "PWM")
 
     def plot_input(self, u_r, u_l, title, x_label, y_label):
         import matplotlib.pyplot as plt
@@ -321,15 +325,16 @@ class UnitTestPositionPID:
         plt.title(title)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
-        plt.xticks(np.arange(0, len(u_l)+1, 1))
+        plt.xticks(np.arange(0, len(u_l) + 1, 1))
 
         # plot the control inputs
-        plt.axis([0, self.test_horizont, np.min(
-            [np.min(u_r), np.min(u_l)]), np.max([np.max(u_r), np.max(u_l)])])
+        plt.axis(
+            [0, self.test_horizont, np.min([np.min(u_r), np.min(u_l)]), np.max([np.max(u_r), np.max(u_l)])]
+        )
 
-        plt.plot(self.t1, (u_r), 'r--', self.t1, (u_l), 'b')
+        plt.plot(self.t1, (u_r), "r--", self.t1, (u_l), "b")
 
-        plt.legend(['Right wheel', 'Left wheel'])
+        plt.legend(["Right wheel", "Left wheel"])
         plt.show()
 
     def plot_pose(self, y_hat_, err_, title, x_label, y_label):
@@ -338,52 +343,55 @@ class UnitTestPositionPID:
         plt.title(title)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
-        plt.xticks(np.arange(0, len(y_hat_)+1, 1))
+        plt.xticks(np.arange(0, len(y_hat_) + 1, 1))
 
         # plot the error and position
-        plt.axis([0, self.test_horizont, np.min(
-            [np.min(y_hat_), np.min(err_)]), np.max([np.max(y_hat_), np.max(err_)])])
-        plt.plot(self.t1, (y_hat_), 'r--', self.t1, (err_), 'b')
+        plt.axis(
+            [
+                0,
+                self.test_horizont,
+                np.min([np.min(y_hat_), np.min(err_)]),
+                np.max([np.max(y_hat_), np.max(err_)]),
+            ]
+        )
+        plt.plot(self.t1, (y_hat_), "r--", self.t1, (err_), "b")
 
-        plt.legend(['Y', 'error'])
+        plt.legend(["Y", "error"])
         plt.show()
 
     def sim(self, omega, v, time):
-        omega_l = (v-0.5*omega*self.L)/self.R
-        omega_r = (v+0.5*omega*self.L)/self.R
+        omega_l = (v - 0.5 * omega * self.L) / self.R
+        omega_r = (v + 0.5 * omega * self.L) / self.R
 
-        delta_phi_left = time*omega_l
-        delta_phi_right = time*omega_r
+        delta_phi_left = time * omega_l
+        delta_phi_right = time * omega_r
 
-        self.y_prev = self.y_prev + self.R * \
-            (delta_phi_right+delta_phi_left)*np.sin(self.theta_prev)/2
+        self.y_prev = self.y_prev + self.R * (delta_phi_right + delta_phi_left) * np.sin(self.theta_prev) / 2
 
-        self.theta_prev = self.theta_prev + self.R * \
-            (delta_phi_right-delta_phi_left)/(self.L)
+        self.theta_prev = self.theta_prev + self.R * (delta_phi_right - delta_phi_left) / (self.L)
 
         u_r, u_l = self.wheel_inputs(omega_r, omega_l)
 
         return self.y_prev, u_r, u_l
 
     def sim_noise(self, omega, v, time):
-        omega_l = (v-0.5*omega*self.L)/self.R
-        omega_r = (v+0.5*omega*self.L)/self.R
+        omega_l = (v - 0.5 * omega * self.L) / self.R
+        omega_r = (v + 0.5 * omega * self.L) / self.R
 
-        delta_phi_left = time*omega_l
-        delta_phi_right = time*omega_r
+        delta_phi_left = time * omega_l
+        delta_phi_right = time * omega_r
 
         # variance of the additive measurement noise
         measurement_noise_variance_m = 0.005
-        measurement_noise = np.random.normal(
-            0, measurement_noise_variance_m)
+        measurement_noise = np.random.normal(0, measurement_noise_variance_m)
 
-        self.y_prev = self.y_prev + self.R * \
-            (delta_phi_right+delta_phi_left)*np.sin(self.theta_prev) / \
-            2 + measurement_noise  # 0.5 cm variance
+        self.y_prev = (
+            self.y_prev
+            + self.R * (delta_phi_right + delta_phi_left) * np.sin(self.theta_prev) / 2
+            + measurement_noise
+        )  # 0.5 cm variance
 
-        self.theta_prev = self.theta_prev + self.R * \
-            (delta_phi_right-delta_phi_left) / \
-            (2*self.L)
+        self.theta_prev = self.theta_prev + self.R * (delta_phi_right - delta_phi_left) / (2 * self.L)
 
         u_r, u_l = self.wheel_inputs(omega_r, omega_l)
 

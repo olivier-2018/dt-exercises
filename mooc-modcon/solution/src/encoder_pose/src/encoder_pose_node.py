@@ -31,6 +31,11 @@ class EncoderPoseNode(DTROS):
             encoder ticks
     """
 
+    right_tick_prev: Optional[int]
+    left_tick_prev: Optional[int]
+    delta_phi_left: float
+    delta_phi_right: float
+
     def __init__(self, node_name):
         # Initialize the DTROS parent class
         super(EncoderPoseNode, self).__init__(node_name=node_name, node_type=NodeType.LOCALIZATION)
@@ -40,32 +45,32 @@ class EncoderPoseNode(DTROS):
 
         # Add the node parameters to the parameters dictionary
 
-        self.delta_phi_left = 0
-        self.left_tick_prev = ""
+        self.delta_phi_left = 0.0
+        self.left_tick_prev = None
 
-        self.delta_phi_right = 0
-        self.right_tick_prev = ""
+        self.delta_phi_right = 0.0
+        self.right_tick_prev = None
 
         # Initializing the odometry
-        self.x_prev = 0
-        self.y_prev = 0
-        self.theta_prev = 0
+        self.x_prev = 0.0
+        self.y_prev = 0.0
+        self.theta_prev = 0.0
 
-        self.x_curr = 0
-        self.y_curr = 0
-        self.theta_curr = 0
+        self.x_curr = 0.0
+        self.y_curr = 0.0
+        self.theta_curr = 0.0
 
         # Initializing the PID controller parameters
-        self.prev_e = 0  # previous tracking error, starts at 0
-        self.prev_int = 0  # previous tracking error integral, starts at 0
-        self.time = 0
+        self.prev_e = 0.0  # previous tracking error, starts at 0
+        self.prev_int = 0.0  # previous tracking error integral, starts at 0
+        self.time = 0.0
 
-        self.v_0 = 0  # fixed robot linear velocity - starts at zero so the activities start on command
+        self.v_0 = 0.0  # fixed robot linear velocity - starts at zero so the activities start on command
         # inside VNC
-        self.y_ref = (
-            0  # reference y for PID lateral control activity - zero so can be set interactively at runtime
-        )
-        self.theta_ref = 0 * np.pi / 180  # initial reference signal for heading control activity
+        # reference y for PID lateral control activity - zero so can be set interactively at runtime
+        self.y_ref = 0.0
+
+        self.theta_ref = np.deg2rad(0.0)  # initial reference signal for heading control activity
         self.omega = 0.0  # initializing omega command to the robot
 
         # nominal R and L:
@@ -92,21 +97,21 @@ class EncoderPoseNode(DTROS):
         # Defining subscribers:
 
         # select the current activity
-        _ = rospy.Subscriber(f"/{self.veh}/activity_name", String, self.cbActivity, queue_size=1)
+        rospy.Subscriber(f"/{self.veh}/activity_name", String, self.cbActivity, queue_size=1)
 
-        _ = rospy.Subscriber(f"/{self.veh}/PID_parameters", String, self.cbPIDparam, queue_size=1)
+        rospy.Subscriber(f"/{self.veh}/PID_parameters", String, self.cbPIDparam, queue_size=1)
 
         # Wheel encoder subscriber:
         left_encoder_topic = f"/{self.veh}/left_wheel_encoder_node/tick"
-        _ = rospy.Subscriber(left_encoder_topic, WheelEncoderStamped, self.cbLeftEncoder, queue_size=1)
+        rospy.Subscriber(left_encoder_topic, WheelEncoderStamped, self.cbLeftEncoder, queue_size=1)
 
         # Wheel encoder subscriber:
         right_encoder_topic = f"/{self.veh}/right_wheel_encoder_node/tick"
-        _ = rospy.Subscriber(right_encoder_topic, WheelEncoderStamped, self.cbRightEncoder, queue_size=1)
+        rospy.Subscriber(right_encoder_topic, WheelEncoderStamped, self.cbRightEncoder, queue_size=1)
 
         # # AIDO challenge payload subscriber
         episode_start_topic = f"/{self.veh}/episode_start"
-        _ = rospy.Subscriber(episode_start_topic, EpisodeStart, self.cbEpisodeStart, queue_size=1)
+        rospy.Subscriber(episode_start_topic, EpisodeStart, self.cbEpisodeStart, queue_size=1)
 
         # Odometry publisher
         self.db_estimated_pose = rospy.Publisher(
@@ -129,13 +134,16 @@ class EncoderPoseNode(DTROS):
         self.RIGHT_RECEIVED = False
         self.LEFT_RECEIVED = False
 
-        self.log("Initialized!")
+        self.log("Initialized.")
 
     def cbEpisodeStart(self, msg: EpisodeStart):
         loaded = yaml.load(msg.other_payload_yaml, Loader=yaml.FullLoader)
-        ip = loaded['initial_pose']
-        self.y_prev = float(ip['y'])
-        self.theta_prev = float(ip['theta_deg']) * np.pi/180
+        if "initial_pose" not in loaded:
+            msg = f"Invalid payload received: {loaded}"
+            raise Exception(msg)
+        ip = loaded["initial_pose"]
+        self.y_prev = float(ip["y"])
+        self.theta_prev = float(np.deg2rad(ip["theta_deg"]))
         self.EPISODE_STARTED = True
 
     # Emergency stop / interactive pane for PID activity and exercise
@@ -153,7 +161,7 @@ class EncoderPoseNode(DTROS):
 
         # ref is angle in activity
         if self.PID_ACTIVITY:
-            self.theta_ref = float(PID_parameters[0]) * np.pi / 180
+            self.theta_ref = float(np.deg2rad(PID_parameters[0]))
 
         # ref is lateral position in exercise
         elif self.PID_EXERCISE:
@@ -196,7 +204,7 @@ class EncoderPoseNode(DTROS):
             return
 
         # initializing ticks to stored absolute value
-        if self.left_tick_prev == "":
+        if self.left_tick_prev is None:
             ticks = encoder_msg.data
             self.left_tick_prev = ticks
             return
@@ -220,7 +228,7 @@ class EncoderPoseNode(DTROS):
         if not (self.ODOMETRY_ACTIVITY or self.PID_ACTIVITY or self.PID_EXERCISE):
             return
 
-        if self.right_tick_prev == "":
+        if self.right_tick_prev is None:
             ticks = encoder_msg.data
             self.right_tick_prev = ticks
             return
