@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[23]:
 
 
 import numpy as np
 
 # Heading control
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your PIDController function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+# TODO: write your PID function for heading control!
 
 def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t):
     """
@@ -23,13 +29,32 @@ def PIDController(v_0, theta_ref, theta_hat, prev_e, prev_int, delta_t):
         current_int_e (:double:) current integral error (automatically becomes prev_int_y at next iteration).
     """
     
+#     # Tracking error
+#     e = None
+
+#     # integral of the error
+#     e_int = None
+
+#     # anti-windup - preventing the integral error from growing too much (try without this step first)
+#     e_int = max(min(e_int,2),-2)
+
+#     # controller coefficients
+#     Kp = None
+#     Ki = None
+#     Kd = None
+
+#     # PID controller for omega
+#     omega = None
+    
+#     u = [v_0, omega]
+    
     # Tracking error
     e = theta_ref - theta_hat
 
     # integral of the error
     e_int = prev_int + e*delta_t
 
-    # anti-windup - preventing the integral error from growing too much
+    # anti-windup - preventing the integral error from growing too much  (try without this step first)
     e_int = max(min(e_int,2),-2)
 
     # derivative of the error
