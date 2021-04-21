@@ -120,8 +120,6 @@ class EncoderPoseNode(DTROS):
         )
 
         # Wait until the encoders data is received, then start the controller
-        self.SIM_STARTED = False
-        self.EPISODE_STARTED = False
         self.duckiebot_is_moving = False
         self.STOP = False
 
@@ -136,7 +134,6 @@ class EncoderPoseNode(DTROS):
         ip = loaded['initial_pose']
         self.y_prev = float(ip['y'])
         self.theta_prev = float(ip['theta_deg']) * np.pi/180
-        self.EPISODE_STARTED = True
 
     # Emergency stop / interactive pane for PID activity and exercise
     def cbPIDparam(self, msg):
@@ -170,8 +167,8 @@ class EncoderPoseNode(DTROS):
         Call the right functions according to desktop icon the parameter.
         """
 
-        self.PID_ACTIVITY = False
         self.publishCmd([0, 0])
+        self.PID_ACTIVITY = False
         self.ODOMETRY_ACTIVITY = False
         self.PID_EXERCISE = False
 
@@ -182,8 +179,6 @@ class EncoderPoseNode(DTROS):
         self.ODOMETRY_ACTIVITY = msg.data == "odometry"
         self.PID_ACTIVITY = msg.data == "pid"
         self.PID_EXERCISE = msg.data == "pid_exercise"
-
-        # read left encoder tick values
 
     def cbLeftEncoder(self, encoder_msg):
         """
@@ -208,7 +203,6 @@ class EncoderPoseNode(DTROS):
         # compute the new pose
         self.LEFT_RECEIVED = True
         self.posePublisher()
-        self.SIM_STARTED = True
 
     def cbRightEncoder(self, encoder_msg):
         """
@@ -232,7 +226,6 @@ class EncoderPoseNode(DTROS):
         # compute the new pose
         self.RIGHT_RECEIVED = True
         self.posePublisher()
-        self.SIM_STARTED = True
 
     def posePublisher(self):
         """
@@ -241,7 +234,7 @@ class EncoderPoseNode(DTROS):
         Publish:
             ~/encoder_localization (:obj:`PoseStamped`): Duckiebot pose.
         """
-        if self.STOP or not self.SIM_STARTED or not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
+        if self.STOP or not (self.LEFT_RECEIVED and self.RIGHT_RECEIVED):
             return
 
         # synch incoming messages from encoders
@@ -305,9 +298,6 @@ class EncoderPoseNode(DTROS):
         """
         Calculate theta and perform the control actions given by the PID
         """
-        # Do nothing if the "send commands button has not been pressed"
-        if not self.SIM_STARTED:
-            return
 
         time_now = time.time()
         delta_time = time_now - self.time
