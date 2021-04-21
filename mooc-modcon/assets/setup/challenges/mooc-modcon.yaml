@@ -1,7 +1,7 @@
 challenge: mooc-modcon
 
 title: "MOOC - ModCon"
-tags: [visible, ml-validation, aido, aido-embodied, LF, v4, simulation, protocol-normal]
+tags: [visible, ml-validation, aido, aido-embodied, LF, v4, simulation, protocol-normal, mooc]
 description: |
   This is the challenge to test the PID controller of the MOOC's modcon exercise.
 
