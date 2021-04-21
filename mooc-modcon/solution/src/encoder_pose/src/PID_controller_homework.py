@@ -45,15 +45,15 @@ def PIDController(
     # derivative of the error
     e_der_y = (e_y - prev_e_y)/delta_t
 
-#     # PID parameters sim (v0 = 0.2, yref = 0.2 then -0.1)
-#     Kp_y= 9
-#     Ki_y= 0.02
-#     Kd_y= 120 
-
-    # PID parameters robot (v0=0.2, yref = 0.1 then -0.2)
+    # PID parameters sim (v0 = 0.2, yref = 0.2 then -0.1)
     Kp_y= 9
-    Ki_y= 0.05
-    Kd_y= 12
+    Ki_y= 0.02
+    Kd_y= 120 
+
+#     # PID parameters robot (v0=0.2, yref = 0.1 then -0.2)
+#     Kp_y= 9
+#     Ki_y= 0.05
+#     Kd_y= 12
     
     # PID controller for omega
     omega = Kp_y*e_y + Ki_y*e_int_y + Kd_y*e_der_y
@@ -61,7 +61,7 @@ def PIDController(
     u = [v_0, omega]
     
     # Debugging 
-    # print(f"\n\nDelta time : {delta_t} \nE : {e_y} \ne_int : {e_int_y} \ne_der : {e_der_y} \nU : {u} \ny_hat: {y_hat} \ny_ref: {y_ref}")
+    print(f"\n\nDelta time : {delta_t} \nE : {e_y} \ne_int : {e_int_y} \ne_der : {e_der_y} \nU : {u} \ny_hat: {y_hat} \ny_ref: {y_ref}")
 
     
     return u, e_y, e_int_y

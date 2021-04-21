@@ -305,7 +305,7 @@ class EncoderPoseNode(DTROS):
         """
         Calculate theta and perform the control actions given by the PID
         """
-        # Do nothing if the PID activity is not set
+        # Do nothing if the "send commands button has not been pressed"
         if not self.SIM_STARTED:
             return
 
