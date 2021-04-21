@@ -159,7 +159,7 @@ class EncoderPoseNode(DTROS):
 
         # ref is angle in activity
         if self.PID_ACTIVITY:
-            self.theta_ref = float(np.deg2rad(PID_parameters[0]))
+            self.theta_ref = np.deg2rad(float(PID_parameters[0]))
 
         # ref is lateral position in exercise
         elif self.PID_EXERCISE:
