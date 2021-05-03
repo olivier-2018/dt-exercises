@@ -17,7 +17,9 @@ dt-launchfile-init
 
 dt-exec roslaunch --wait agent agent_node.launch
 dt-exec roslaunch --wait car_interface all.launch veh:=$VEHICLE_NAME
+#dt-exec roslaunch --wait image_processing image_rectification.launch veh:=$VEHICLE_NAME
 dt-exec roslaunch visual_lane_servoing visual_lane_servoing_node.launch veh:=$VEHICLE_NAME
+
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE

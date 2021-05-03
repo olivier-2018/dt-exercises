@@ -29,16 +29,24 @@ class UnitTestMessage:
 class UnitTestLMO:
     # Test the detection and estimation of lane marking orientations
     def __init__(self, LMOrientation):
-        imgbgr = cv2.imread('../images/visual_control/pic2_rect.png')
+        imgbgr = cv2.imread('../images/visual_control/test.png')
 
-        theta_left, theta_right = LMOrientation(imgbgr)
+        theta_left, theta_right, mask_lt, mask_rt = LMOrientation(imgbgr)
         print()
         print('Function returned the following orientations for the given image:')
         print('    Left Edge:   %.2f radians (%.2f degrees)' % (theta_left, theta_left*180/np.pi))
         print('    Right Edge:  %.2f radians (%.2f degrees)' % (theta_right, theta_right*180/np.pi))
 
-        fig = plt.figure()
-        ax1 = fig.add_subplot(1, 1, 1)
+        fig = plt.figure(figsize=(20, 5))
+        ax1 = fig.add_subplot(1, 3, 1)
         # OpenCV uses BGR by default, whereas matplotlib uses RGB, so we generate an RGB version for the sake of visualization
         ax1.imshow(cv2.cvtColor(imgbgr, cv2.COLOR_BGR2RGB))
         ax1.set_title('Do these orientations look right?'), ax1.set_xticks([]), ax1.set_yticks([])
+
+        ax2 = fig.add_subplot(1, 3, 2)
+        ax2.imshow(cv2.cvtColor(mask_lt, cv2.COLOR_BGR2RGB))
+        ax2.set_title('Mask (Left)'), ax2.set_xticks([]), ax2.set_yticks([])
+
+        ax3 = fig.add_subplot(1, 3, 3)
+        ax3.imshow(cv2.cvtColor(mask_rt, cv2.COLOR_BGR2RGB))
+        ax3.set_title('Mask (Right)'), ax3.set_xticks([]), ax3.set_yticks([])

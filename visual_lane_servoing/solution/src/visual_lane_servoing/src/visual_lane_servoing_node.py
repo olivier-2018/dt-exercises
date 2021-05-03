@@ -10,9 +10,11 @@ from duckietown_msgs.msg import EpisodeStart, WheelsCmdStamped
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
-import visual_lane_servoing_activity
+# TODO: fix this
+import SOLUTIONS_visual_control_activity as visual_control_activity
+
 from duckietown.dtros import DTROS, NodeType, TopicType
-from duckietown.utils.image.ros import compressed_imgmsg_to_rgb
+from duckietown.utils.image.ros import compressed_imgmsg_to_rgb, rgb_to_compressed_imgmsg
 
 
 class LaneServoingNode(DTROS):
@@ -36,7 +38,8 @@ class LaneServoingNode(DTROS):
 
     def __init__(self, node_name):
         # Initialize the DTROS parent class
-        super(LaneServoingNode, self).__init__(node_name=node_name, node_type=NodeType.LOCALIZATION)
+        super(LaneServoingNode, self).__init__(node_name=node_name,
+                                               node_type=NodeType.LOCALIZATION)
         self.log("Initializing...")
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
@@ -52,7 +55,13 @@ class LaneServoingNode(DTROS):
         self.y_prev = 0.0
         self.theta_prev = 0.0
 
-        self._top_cutoff = 0
+        # self._top_cutoff = np.floor(0.4 * 480).astype(int)
+        # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
+
+        w, h = 640, 480
+        self._cutoff = ((int(0.5 * h), int(0.08 * h)), (int(0.1 * w), int(0.1 * w)))
+
+        self.VLS_ACTIVITY = False
 
         # Parameters relevant to motor commands
         self.left_const = 0.1
@@ -74,19 +83,16 @@ class LaneServoingNode(DTROS):
         if self.AIDO_eval:
             self.VLS_EXERCISE = True
             self.v_0 = 0.2
-            self.log("Starting evaluation for PID lateral controller.")
+            self.log("Starting evaluation for Visual Lane Servoing.")
 
         # Defining subscribers:
         rospy.Subscriber(
-            f"/{self.veh}/image/compressed",
+            f"/{self.veh}/rectifier_node/image/compressed",
             CompressedImage,
             self.cbImage,
             buff_size=10000000,
             queue_size=1
         )
-
-        # select the current activity
-        rospy.Subscriber(f"/{self.veh}/activity_name", String, self.cbActivity, queue_size=1)
 
         # # AIDO challenge payload subscriber
         episode_start_topic = f"/{self.veh}/episode_start"
@@ -108,6 +114,18 @@ class LaneServoingNode(DTROS):
             dt_topic_type=TopicType.CONTROL
         )
 
+        self._lt_mask_pub = rospy.Publisher(
+            f"/{self.veh}/visual_control/left_mask/image/compressed",
+            CompressedImage,
+            queue_size=1
+        )
+
+        self._rt_mask_pub = rospy.Publisher(
+            f"/{self.veh}/visual_control/right_mask/image/compressed",
+            CompressedImage,
+            queue_size=1
+        )
+
         self.log("Initialized.")
 
     def cbEpisodeStart(self, msg: EpisodeStart):
@@ -122,21 +140,6 @@ class LaneServoingNode(DTROS):
             self.y_prev = 0.0
             self.theta_prev = 0.0
 
-
-    def cbActivity(self, msg):
-        """
-        Call the right functions according to desktop icon the parameter.
-        """
-
-        self.publishCmd(0, 0)
-        self.VLS_ACTIVITY = False
-
-        self.log("")
-        self.log(f"Received activity {msg.data}")
-        self.log("")
-
-        self.VLS_ACTIVITY = msg.data == "vls"
-
     def cbImage(self, image_msg):
         """
         Processes the incoming image messages.
@@ -145,7 +148,8 @@ class LaneServoingNode(DTROS):
 
         #. Performs color correction
         #. Resizes the image to the ``~img_size`` resolution
-        #. Removes the top ``~top_cutoff`` rows in order to remove the part of the image that doesn't include the road
+        #. Removes the top ``~top_cutoff`` rows in order to remove the part of the
+        image that doesn't include the road
 
         Args:
             image_msg (:obj:`sensor_msgs.msg.CompressedImage`): The receive image message
@@ -153,12 +157,16 @@ class LaneServoingNode(DTROS):
         """
 
         image = compressed_imgmsg_to_rgb(image_msg)
-        # Resize the image to the desired dimensions
+        # Resize the image to the desired dimensionsS
         height_original, width_original = image.shape[0:2]
         img_size = image.shape[0:2]
         if img_size[0] != width_original or img_size[1] != height_original:
-            image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
-        image = image[self._top_cutoff:, :, :]
+            image = cv2.resize(image, tuple(reversed(img_size)), interpolation=cv2.INTER_NEAREST)
+        # image = image[self._top_cutoff:-self._bottom_cutoff, :, :]
+
+        # crop image
+        (top, bottom), (left, right) = self._cutoff
+        image = image[top:-bottom, left:-right, :]
 
         self.performServoing(image)
 
@@ -169,15 +177,22 @@ class LaneServoingNode(DTROS):
             ~/encoder_localization (:obj:`PoseStamped`): Duckiebot pose.
         """
 
-        theta_left, theta_right = visual_lane_servoing_activity.LMOrientation(image)
-        residual_left, residual_right = visual_lane_servoing_activity.getMotorResiduals(theta_left, theta_right)
-        cmd_left, cmd_right = self.computeCommands(self, residual_left, residual_right)
+        theta_left, theta_right, lt_mask, rt_mask = visual_control_activity.LMOrientation(image)
+        residual_left, residual_right = \
+            visual_control_activity.getMotorResiduals(theta_left, theta_right)
+        cmd_left, cmd_right = self.computeCommands(residual_left, residual_right)
         self.publishCmd(cmd_left, cmd_right)
+
+        lt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(lt_mask, cv2.COLOR_BGR2RGB), "jpeg")
+        rt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(rt_mask, cv2.COLOR_BGR2RGB), "jpeg")
+
+        self._lt_mask_pub.publish(lt_mask)
+        self._rt_mask_pub.publish(rt_mask)
 
         # self.logging to screen for debugging purposes
         self.log("              VISUAL LANE SERVOING             ")
-        self.log(f"Orientation (Left) : {np.rad2deg(theta_left)} deg,"
-                 f"  Orientation (Right) : {np.rad2deg(theta_right)} deg")
+        self.log(f"Orientation (Left) : {np.round(np.rad2deg(theta_left), 1)} deg,"
+                 f"  Orientation (Right) : {np.round(np.rad2deg(theta_right), 1)} deg")
         self.log(f"Command (Left) : {cmd_left},  Command (Right) : {cmd_right} deg")
 
     def computeCommands(self, residual_left, residual_right):
@@ -204,8 +219,8 @@ class LaneServoingNode(DTROS):
         self.right_min = min(residual_right, self.right_min)
 
         # now rescale from 0 to 1
-        ls = self.rescale(residual_left, self.left_min, self.left_max)
-        rs = self.rescale(residual_right, self.right_min, self.right_max)
+        ls = rescale(residual_left, self.left_min, self.left_max)
+        rs = rescale(residual_right, self.right_min, self.right_max)
 
         pwm_left = self.left_const + ls
         pwm_right = self.right_const + rs
@@ -242,21 +257,6 @@ class LaneServoingNode(DTROS):
         # self.pub_car_cmd.publish(car_control_msg)
 
     @staticmethod
-    def rescale(value, low, high):
-        """
-        Rescales the `value` between [0, 1] according to the range [low, high].
-
-        Args:
-            value: the value to be trimmed
-            low: the minimum bound
-            high: the maximum bound
-
-        Returns:
-            the rescaled value
-        """
-        return (value - low) / (high - low)
-
-    @staticmethod
     def trim(value, low, high):
         """
         Trims a value to be between some bounds.
@@ -281,6 +281,12 @@ class LaneServoingNode(DTROS):
             return theta + 2 * np.pi
         else:
             return theta
+
+
+def rescale(a: float, L: float, U: float):
+    if np.allclose(L, U):
+        return 0.0
+    return (a - L) / (U - L)
 
 
 if __name__ == "__main__":
