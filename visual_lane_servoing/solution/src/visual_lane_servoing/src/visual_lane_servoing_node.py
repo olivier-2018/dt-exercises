@@ -65,7 +65,8 @@ class LaneServoingNode(DTROS):
         self.AIDO_eval = rospy.get_param(f"/{self.veh}/AIDO_eval", False)
         self.log(f"AIDO EVAL VAR: {self.AIDO_eval}")
 
-        # Flags for a joyful learning experience (spins only parts of this code depending on the icons pressed on the VNC desktop)
+        # Flags for a joyful learning experience
+        # (spins only parts of this code depending on the icons pressed on the VNC desktop)
         self.VLS_EXERCISE = False
 
         # Active only when submitting and evaluating (PID Exercise)
@@ -118,7 +119,7 @@ class LaneServoingNode(DTROS):
         Call the right functions according to desktop icon the parameter.
         """
 
-        self.publishCmd([0, 0])
+        self.publishCmd(0, 0)
         self.VLS_ACTIVITY = False
 
         self.log("")
@@ -172,7 +173,8 @@ class LaneServoingNode(DTROS):
 
         # self.logging to screen for debugging purposes
         self.log("              VISUAL LANE SERVOING             ")
-        self.log(f"Orientation (Left) : {np.rad2deg(theta_left)} deg,  Orientation (Right) : {np.rad2deg(theta_right)} deg")
+        self.log(f"Orientation (Left) : {np.rad2deg(theta_left)} deg,"
+                 f"  Orientation (Right) : {np.rad2deg(theta_right)} deg")
         self.log(f"Command (Left) : {cmd_left},  Command (Right) : {cmd_right} deg")
 
     def computeCommands(self, residual_left, residual_right):
@@ -189,7 +191,6 @@ class LaneServoingNode(DTROS):
 
         """
 
-
         # These are big numbers -- we want to normalize them.
         # We normalize them using the history
 
@@ -203,7 +204,6 @@ class LaneServoingNode(DTROS):
         ls = rescale(residual_left, self.left_min, self.left_max)
         rs = rescale(residual_right, self.right_min, self.right_max)
 
-        left_const = self.left_const
         pwm_left = self.left_const + ls
         pwm_right = self.right_const + rs
 
@@ -235,10 +235,8 @@ class LaneServoingNode(DTROS):
         car_control_msg.v = u[0]  # v
         car_control_msg.omega = u[1]  # omega
         # save omega in case of STOP
-        self.omega = u[1]
 
         self.pub_car_cmd.publish(car_control_msg)
-
 
     @staticmethod
     def trim(value, low, high):
