@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-import os
-import cv2
 import math
 from typing import Optional
 
+import cv2
 import numpy as np
 import rospy
 import yaml
-from duckietown.dtros import DTROS, NodeType, TopicType
-from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped, EpisodeStart, WheelsCmdStamped
-from nav_msgs.msg import Odometry
-from std_msgs.msg import String
+from duckietown_msgs.msg import EpisodeStart, WheelsCmdStamped
 from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import String
 
 import visual_lane_servoing_activity
+from duckietown.dtros import DTROS, NodeType, TopicType
+from duckietown.utils.image.ros import compressed_imgmsg_to_rgb
 
 
 class LaneServoingNode(DTROS):
@@ -52,6 +51,8 @@ class LaneServoingNode(DTROS):
 
         self.y_prev = 0.0
         self.theta_prev = 0.0
+
+        self._top_cutoff = 0
 
         # Parameters relevant to motor commands
         self.left_const = 0.1
@@ -92,8 +93,16 @@ class LaneServoingNode(DTROS):
         rospy.Subscriber(episode_start_topic, EpisodeStart, self.cbEpisodeStart, queue_size=1)
 
         # Command publisher
+        # self.pub_wheels_cmd = rospy.Publisher(
+        #     f"/{self.veh}/joy_mapper_node/car_cmd",
+        #     Twist2DStamped,
+        #     queue_size=1,
+        #     dt_topic_type=TopicType.CONTROL
+        # )
+
+        # Command publisher
         self.pub_wheels_cmd = rospy.Publisher(
-            f"/{self.veh}/joy_mapper_node/car_cmd",
+            f"/{self.veh}/wheels_driver_node/wheels_cmd",
             WheelsCmdStamped,
             queue_size=1,
             dt_topic_type=TopicType.CONTROL
@@ -143,13 +152,7 @@ class LaneServoingNode(DTROS):
 
         """
 
-        # Decode from compressed image with OpenCV
-        try:
-            image = self.bridge.compressed_imgmsg_to_cv2(image_msg)
-        except ValueError as e:
-            self.logerr('Could not decode image: %s' % e)
-            return
-
+        image = compressed_imgmsg_to_rgb(image_msg)
         # Resize the image to the desired dimensions
         height_original, width_original = image.shape[0:2]
         img_size = image.shape[0:2]
@@ -168,7 +171,7 @@ class LaneServoingNode(DTROS):
 
         theta_left, theta_right = visual_lane_servoing_activity.LMOrientation(image)
         residual_left, residual_right = visual_lane_servoing_activity.getMotorResiduals(theta_left, theta_right)
-        cmd_left, cmd_right = computeCommands(self, residual_left, residual_right)
+        cmd_left, cmd_right = self.computeCommands(self, residual_left, residual_right)
         self.publishCmd(cmd_left, cmd_right)
 
         # self.logging to screen for debugging purposes
@@ -201,8 +204,8 @@ class LaneServoingNode(DTROS):
         self.right_min = min(residual_right, self.right_min)
 
         # now rescale from 0 to 1
-        ls = rescale(residual_left, self.left_min, self.left_max)
-        rs = rescale(residual_right, self.right_min, self.right_max)
+        ls = self.rescale(residual_left, self.left_min, self.left_max)
+        rs = self.rescale(residual_right, self.right_min, self.right_max)
 
         pwm_left = self.left_const + ls
         pwm_right = self.right_const + rs
@@ -229,14 +232,29 @@ class LaneServoingNode(DTROS):
         msg_wheels_cmd.vel_left = cmd_left_limited
         self.pub_wheels_cmd.publish(msg_wheels_cmd)
 
-        car_control_msg = Twist2DStamped()
-        car_control_msg.header.stamp = rospy.Time.now()
+        # car_control_msg = Twist2DStamped()
+        # car_control_msg.header.stamp = rospy.Time.now()
+        #
+        # car_control_msg.v = u[0]  # v
+        # car_control_msg.omega = u[1]  # omega
+        # # save omega in case of STOP
+        #
+        # self.pub_car_cmd.publish(car_control_msg)
 
-        car_control_msg.v = u[0]  # v
-        car_control_msg.omega = u[1]  # omega
-        # save omega in case of STOP
+    @staticmethod
+    def rescale(value, low, high):
+        """
+        Rescales the `value` between [0, 1] according to the range [low, high].
 
-        self.pub_car_cmd.publish(car_control_msg)
+        Args:
+            value: the value to be trimmed
+            low: the minimum bound
+            high: the maximum bound
+
+        Returns:
+            the rescaled value
+        """
+        return (value - low) / (high - low)
 
     @staticmethod
     def trim(value, low, high):
@@ -255,7 +273,6 @@ class LaneServoingNode(DTROS):
 
     def onShutdown(self):
         super(LaneServoingNode, self).on_shutdown()
-
 
     def angle_clamp(self, theta):
         if theta > 2 * np.pi:
