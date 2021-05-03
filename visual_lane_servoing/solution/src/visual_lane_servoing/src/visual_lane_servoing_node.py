@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 import os
-import time
+import cv2
+import math
 from typing import Optional
 
 import numpy as np
 import rospy
 import yaml
 from duckietown.dtros import DTROS, NodeType, TopicType
-from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped, EpisodeStart
+from duckietown_msgs.msg import Twist2DStamped, WheelEncoderStamped, EpisodeStart, WheelsCmdStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
+from sensor_msgs.msg import CompressedImage
 
-import odometry_activity
-import PID_controller
-import PID_controller_homework
+import visual_lane_servoing_activity
 
 
 class LaneServoingNode(DTROS):
@@ -151,7 +151,7 @@ class LaneServoingNode(DTROS):
 
         # Resize the image to the desired dimensions
         height_original, width_original = image.shape[0:2]
-        img_size = (self._img_size[1], self._img_size[0])
+        img_size = image.shape[0:2]
         if img_size[0] != width_original or img_size[1] != height_original:
             image = cv2.resize(image, img_size, interpolation=cv2.INTER_NEAREST)
         image = image[self._top_cutoff:, :, :]
@@ -175,7 +175,7 @@ class LaneServoingNode(DTROS):
         self.log(f"Orientation (Left) : {np.rad2deg(theta_left)} deg,  Orientation (Right) : {np.rad2deg(theta_right)} deg")
         self.log(f"Command (Left) : {cmd_left},  Command (Right) : {cmd_right} deg")
 
-   def computeCommands(self, residual_left, residual_right):
+    def computeCommands(self, residual_left, residual_right):
         """
         Computes the PWM commands for the left and right motors
         Args:
