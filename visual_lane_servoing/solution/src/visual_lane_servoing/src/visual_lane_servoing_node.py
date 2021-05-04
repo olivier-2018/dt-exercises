@@ -100,12 +100,12 @@ class LaneServoingNode(DTROS):
             queue_size=1
         )
 
-        # select the current activity
-        rospy.Subscriber(f"/{self.veh}/activity_name", String, self.cbActivity, queue_size=1)
-
-        # # AIDO challenge payload subscriber
-        episode_start_topic = f"/{self.veh}/episode_start"
-        rospy.Subscriber(episode_start_topic, EpisodeStart, self.cbEpisodeStart, queue_size=1)
+        # # select the current activity
+        # rospy.Subscriber(f"/{self.veh}/activity_name", String, self.cbActivity, queue_size=1)
+        #
+        # # # AIDO challenge payload subscriber
+        # episode_start_topic = f"/{self.veh}/episode_start"
+        # rospy.Subscriber(episode_start_topic, EpisodeStart, self.cbEpisodeStart, queue_size=1)
 
         # Command publisher
         self.pub_wheels_cmd = rospy.Publisher(
@@ -134,8 +134,6 @@ class LaneServoingNode(DTROS):
         Call the right functions according to desktop icon the parameter.
         """
 
-        self.publishCmd([0, 0])
-        self.BRAITENBERG_EXERCISE = False
         self.VLS_EXERCISE = False
 
         self.log("")
@@ -183,34 +181,32 @@ class LaneServoingNode(DTROS):
         (top, bottom), (left, right) = self._cutoff
         image = image[top:-bottom, left:-right, :]
 
-        if self.VLS_ACTIVITY:
-            self.perform_servoing(image)
-        elif self.BRAITENBERG_ACTIVITY:
-            self.perform_braitenberg(image)
+        # if self.VLS_ACTIVITY:
+        #     self.perform_servoing(image)
 
-    def perform_servoing(self, image):
-        """
-        Control the left and right motors based on the estimated orientation of the lane markings
-        """
-
-        theta_left, theta_right, lt_mask, rt_mask = visual_control_activity.LMOrientation(image)
-        residual_left, residual_right = \
-            visual_control_activity.getMotorResiduals(theta_left, theta_right)
-        cmd_left, cmd_right = self.computeCommands(residual_left, residual_right)
-
-        self.publish_command(cmd_left, cmd_right)
-
-        lt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(lt_mask, cv2.COLOR_BGR2RGB), "jpeg")
-        rt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(rt_mask, cv2.COLOR_BGR2RGB), "jpeg")
-
-        self._lt_mask_pub.publish(lt_mask)
-        self._rt_mask_pub.publish(rt_mask)
-
-        # self.logging to screen for debugging purposes
-        self.log("              VISUAL LANE SERVOING             ")
-        self.log(f"Orientation (Left) : {np.round(np.rad2deg(theta_left), 1)} deg,"
-                 f"  Orientation (Right) : {np.round(np.rad2deg(theta_right), 1)} deg")
-        self.log(f"Command (Left) : {cmd_left},  Command (Right) : {cmd_right}")
+    # def perform_servoing(self, image):
+    #     """
+    #     Control the left and right motors based on the estimated orientation of the lane markings
+    #     """
+    #
+    #     theta_left, theta_right, lt_mask, rt_mask = visual_control_activity.LMOrientation(image)
+    #     residual_left, residual_right = \
+    #         visual_control_activity.getMotorResiduals(theta_left, theta_right)
+    #     cmd_left, cmd_right = self.computeCommands(residual_left, residual_right)
+    #
+    #     self.publish_command(cmd_left, cmd_right)
+    #
+    #     lt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(lt_mask, cv2.COLOR_BGR2RGB), "jpeg")
+    #     rt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(rt_mask, cv2.COLOR_BGR2RGB), "jpeg")
+    #
+    #     self._lt_mask_pub.publish(lt_mask)
+    #     self._rt_mask_pub.publish(rt_mask)
+    #
+    #     # self.logging to screen for debugging purposes
+    #     self.log("              VISUAL LANE SERVOING             ")
+    #     self.log(f"Orientation (Left) : {np.round(np.rad2deg(theta_left), 1)} deg,"
+    #              f"  Orientation (Right) : {np.round(np.rad2deg(theta_right), 1)} deg")
+    #     self.log(f"Command (Left) : {cmd_left},  Command (Right) : {cmd_right}")
 
     def perform_braitenberg(self, image):
         """
@@ -220,15 +216,17 @@ class LaneServoingNode(DTROS):
                 image:  BGR image from forward-facing camera
         """
 
+        shape = (2,)
+
         if self.left_matrix is None:
-            self.left_matrix_left_lm = visual_control_activity.get_motor_left_matrix_left_lane_markings()
-            self.left_matrix_right_lm = visual_control_activity.get_motor_left_matrix_right_lane_markings()
-            self.right_matrix_left_lm = visual_control_activity.get_motor_right_matrix_left_lane_markings()
-            self.right_matrix_right_lm = visual_control_activity.get_motor_right_matrix_right_lane_markings()
+            self.left_matrix_left_lm = visual_control_activity.get_motor_left_matrix_left_lane_markings(shape)
+            self.left_matrix_right_lm = visual_control_activity.get_motor_left_matrix_right_lane_markings(shape)
+            self.right_matrix_left_lm = visual_control_activity.get_motor_right_matrix_left_lane_markings(shape)
+            self.right_matrix_right_lm = visual_control_activity.get_motor_right_matrix_right_lane_markings(shape)
 
         # Call the user-defined function to get the masks for the left
         # and right lane markings
-        (lt_mask, rt_mask) = visual_control_activity.LMOrientation(image)
+        (lt_mask, rt_mask) = visual_control_activity.detect_lane_markings(image)
 
         l = float(np.sum(lt_mask * self.left_matrix_left_lm)) + float(np.sum(rt_mask * self.left_matrix_right_lm))
         r = float(np.sum(lt_mask * self.right_matrix_left_lm)) + float(np.sum(rt_mask * self.right_matrix_right_lm))
@@ -259,12 +257,12 @@ class LaneServoingNode(DTROS):
         self._rt_mask_pub.publish(rt_mask)
 
         # self.logging to screen for debugging purposes
-        self.log("              BRAITENBERG LANE FOLLOWING             ")
+        self.log("    VISUAL SERVOING    ")
         self.log(f"Left: (Unnormalized) : {np.round(l, 1)},"
                  f"  Right (Unnormalized) : {np.round(r, 1)} deg")
         self.log(f"Left: (Normalized) : {np.round(ls, 1)},"
                  f"  Right (Normalized) : {np.round(rs, 1)} deg")
-        self.log(f"Command (Left) : {pwd_left},  Command (Right) : {pwd_right}")
+        self.log(f"Command (Left) : {pwm_left},  Command (Right) : {pwm_right}")
 
     def compute_commands(self, residual_left, residual_right):
         """

@@ -13,15 +13,117 @@ import numpy as np
 
 #TODO: write a correct function
 
-def LMOrientation(image):
+def get_motor_left_matrix_left_lane_markings(shape):
+    """
+        Args:
+            shape: The shape of the motor matrix (tuple of ints)
+        Return:
+            left_matrix_left_lane: The left motor matrix for Braitenberg-like control 
+                                   using the masked left lane markings (numpy.ndarray)
+    """
+    
+    # TODO: these are random values, you have to implement your own solution in here
+    # Convert the image to HSV for any color-based filtering
+    left_matrix_left_lane = np.random.randn(*shape)
+
+    return left_matrix_left_lane
+
+
+# In[5]:
+
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your DeltaPhi function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+
+#TODO: write a correct function
+
+def get_motor_left_matrix_right_lane_markings(shape):
+    """
+        Args:
+            shape: The shape of the motor matrix (tuple of ints)
+        Return:
+            left_matrix_right_lane: The left motor matrix for Braitenberg-like control 
+                                    using the masked right lane markings (numpy.ndarray)
+    """
+    
+    # TODO: these are random values, you have to implement your own solution in here
+    # Convert the image to HSV for any color-based filtering
+    left_matrix_right_lane = np.random.randn(*shape)
+
+    return left_matrix_right_lane
+
+
+# In[ ]:
+
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your DeltaPhi function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+
+#TODO: write a correct function
+
+def get_motor_right_matrix_left_lane_markings(shape):
+    """
+        Args:
+            shape: The shape of the motor matrix (tuple of ints)
+        Return:
+            right_matrix_left_lane: The right motor matrix for Braitenberg-like control 
+                                    using the masked left lane markings (numpy.ndarray)
+    """
+    
+    # TODO: these are random values, you have to implement your own solution in here
+    # Convert the image to HSV for any color-based filtering
+    right_matrix_left_lane = np.random.randn(*shape)
+
+    return right_matrix_left_lane
+
+
+# In[ ]:
+
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your DeltaPhi function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+
+#TODO: write a correct function
+
+def get_motor_right_matrix_right_lane_markings(shape):
+    """
+        Args:
+            shape: The shape of the motor matrix (tuple of ints)
+        Return:
+            right_matrix_right_lane: The right motor matrix for Braitenberg-like control 
+                                    using the masked right lane markings (numpy.ndarray)
+    """
+    
+    # TODO: these are random values, you have to implement your own solution in here
+    # Convert the image to HSV for any color-based filtering
+    right_matrix_right_lane = np.random.randn(*shape)
+
+    return right_matrix_right_lane
+
+
+# In[21]:
+
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your DeltaPhi function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+
+#TODO: write a correct function
+
+def detect_lane_markings(image):
     """
         Args:
             image: An image from the robot's camera in the BGR color space (numpy.ndarray)
         Return:
-            theta_left:  Image-space orientation (radians) of the left (dashed-yellow) lane marking (double)
-            theta_right: Image-space orientation (radians) of the right (solid-white) lane marking (double)
-            mask_left:   Masked image for the dashed-yellow line (BGR, just for visualization)
-            mask_right:   Masked image for the solid-white line (BGR, just for visualization)
+            left_masked_img:   Masked image for the dashed-yellow line (numpy.ndarray)
+            right_masked_img:  Masked image for the solid-white line (numpy.ndarray)
     """
     
     # TODO: these are random values, you have to implement your own solution in here
@@ -93,52 +195,5 @@ def LMOrientation(image):
     left_masked_img = cv2.addWeighted(img_gaussian_filter, 0.4, (Gmag * mask_left_edge).astype(np.uint8), 0.6, 0)
     right_masked_img = cv2.addWeighted(img_gaussian_filter, 0.4, (Gmag * mask_right_edge).astype(np.uint8), 0.6, 0)
     
-    
-    
-#     ax8.imshow(img_gaussian_filter,cmap = 'gray')
-#     ax8.imshow(Gmag * mask_right_edge, cmap='jet', alpha=0.5)
-    
-    # Determine the orientation of the left and right gradients as the mode of each histogram
-    (hist_left_edge, bins_left_edge) = np.histogram(np.extract(mask_left_edge, Gdir).flatten(), bins=30)
-    (hist_right_edge, bins_right_edge) = np.histogram(np.extract(mask_right_edge, Gdir).flatten(), bins=30)
-
-    idx = hist_left_edge.argmax()
-    theta_left = (bins_left_edge[idx] + bins_left_edge[idx+1])/2
-    idx = hist_right_edge.argmax()
-    theta_right = (bins_right_edge[idx] + bins_right_edge[idx+1])/2
-
-    return theta_left, theta_right, left_masked_img, right_masked_img
-
-
-# In[12]:
-
-
-# The function written in this cell will actually be ran on your robot (sim or real). 
-# Put together the steps above and write your DeltaPhi function! 
-# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
-
-#TODO: write a correct function
-
-def getMotorResiduals(theta_left, theta_right):
-    """
-        Args:
-            theta_left:  Image-space orientation (radians) of the left (dashed-yellow) lane marking (double)
-            theta_right: Image-space orientation (radians) of the right (solid-white) lane marking (double)
-        Return:
-            residual_left:  Residual command for the left motor (double)
-            residual_right: Residual command for the right motor (double)
-    """
-    
-    # TODO: These represent the desired orientations of the left and right lane markings
-    #       You should change these values to represent the orientations associated with
-    #       the robot positioned in the middle of the lane in the direction of travel.
-    theta_left_desired = 3.84 # (220 degrees)
-    theta_right_desired = 5.59 # (320 degrees)
-    
-    # TODO: These are arbitrary values. You need to implement your own solution here
-    residual_left = 0.0
-    residual_right = 0.0
-
-
-    return residual_left, residual_right
+    return (left_masked_img, right_masked_img)
 
