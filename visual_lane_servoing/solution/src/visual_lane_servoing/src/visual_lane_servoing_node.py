@@ -56,7 +56,7 @@ class LaneServoingNode(DTROS):
         self.theta_prev = 0.0
 
         # The following are used for the Braitenberg exercise
-        self.gain = 0.5
+        self.gain = 0.1
         self.left_matrix_left_lm = None
         self.left_matrix_right_lm = None
         self.right_matrix_left_lm = None
@@ -66,7 +66,7 @@ class LaneServoingNode(DTROS):
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
 
         w, h = 640, 480
-        self._cutoff = ((int(0.5 * h), int(0.08 * h)), (int(0.1 * w), int(0.1 * w)))
+        self._cutoff = ((int(0.5 * h), int(0.01 * h)), (int(0.1 * w), int(0.1 * w)))
 
         self.VLS_ACTIVITY = False
 
@@ -136,8 +136,7 @@ class LaneServoingNode(DTROS):
         Call the right functions according to desktop icon the parameter.
         """
 
-        self.VLS
-        _EXERCISE = False
+        self.VLS_EXERCISE = False
 
         self.log("")
         self.log(f"Received activity {msg.data}")
@@ -184,6 +183,8 @@ class LaneServoingNode(DTROS):
         (top, bottom), (left, right) = self._cutoff
         image = image[top:-bottom, left:-right, :]
 
+        self.perform_braitenberg(image)
+
         # if self.VLS_ACTIVITY:
         #     self.perform_servoing(image)
 
@@ -219,6 +220,8 @@ class LaneServoingNode(DTROS):
                 image:  BGR image from forward-facing camera
         """
 
+        shape = image.shape[0:2]
+
         if self.left_matrix_left_lm is None:
             self.left_matrix_left_lm = visual_control_activity.get_motor_left_matrix_left_lane_markings(shape)
             self.left_matrix_right_lm = visual_control_activity.get_motor_left_matrix_right_lane_markings(shape)
@@ -251,8 +254,13 @@ class LaneServoingNode(DTROS):
         self.publish_command(pwm_left, pwm_right)
 
         # Publish these out for visualization
-        lt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(lt_mask, cv2.COLOR_BGR2RGB), "jpeg")
-        rt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(rt_mask, cv2.COLOR_BGR2RGB), "jpeg")
+        lt_mask = cv2.addWeighted(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 0.1,
+                                  lt_mask.astype(np.uint8), 0.8, 0)
+        rt_mask = cv2.addWeighted(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 0.1,
+                                  rt_mask.astype(np.uint8), 0.8, 0)
+
+        lt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(lt_mask, cv2.COLOR_GRAY2RGB), "jpeg")
+        rt_mask = rgb_to_compressed_imgmsg(cv2.cvtColor(rt_mask, cv2.COLOR_GRAY2RGB), "jpeg")
 
         self._lt_mask_pub.publish(lt_mask)
         self._rt_mask_pub.publish(rt_mask)
@@ -260,9 +268,9 @@ class LaneServoingNode(DTROS):
         # self.logging to screen for debugging purposes
         self.log("    VISUAL SERVOING    ")
         self.log(f"Left: (Unnormalized) : {np.round(l, 1)},"
-                 f"  Right (Unnormalized) : {np.round(r, 1)} deg")
+                 f"  Right (Unnormalized) : {np.round(r, 1)}")
         self.log(f"Left: (Normalized) : {np.round(ls, 1)},"
-                 f"  Right (Normalized) : {np.round(rs, 1)} deg")
+                 f"  Right (Normalized) : {np.round(rs, 1)}")
         self.log(f"Command (Left) : {pwm_left},  Command (Right) : {pwm_right}")
 
     def compute_commands(self, residual_left, residual_right):

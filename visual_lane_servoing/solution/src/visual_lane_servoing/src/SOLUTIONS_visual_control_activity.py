@@ -24,7 +24,11 @@ def get_motor_left_matrix_left_lane_markings(shape):
     
     # TODO: these are random values, you have to implement your own solution in here
     # Convert the image to HSV for any color-based filtering
-    left_matrix = np.random.randn(*shape)
+    left_matrix_left_lane = np.zeros(shape)
+    
+    _, w = shape
+    
+    left_matrix_left_lane[:, int(w/2):w] = 1.0
 
     return left_matrix_left_lane
 
@@ -36,8 +40,6 @@ def get_motor_left_matrix_left_lane_markings(shape):
 # Put together the steps above and write your DeltaPhi function! 
 # DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
 
-import cv2
-import numpy as np
 
 #TODO: write a correct function
 
@@ -52,9 +54,65 @@ def get_motor_left_matrix_right_lane_markings(shape):
     
     # TODO: these are random values, you have to implement your own solution in here
     # Convert the image to HSV for any color-based filtering
-    left_matrix = np.random.randn(*shape)
+    left_matrix_right_lane = np.zeros(shape)
 
     return left_matrix_right_lane
+
+
+# In[ ]:
+
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your DeltaPhi function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+
+#TODO: write a correct function
+
+def get_motor_right_matrix_left_lane_markings(shape):
+    """
+        Args:
+            shape: The shape of the motor matrix (tuple of ints)
+        Return:
+            right_matrix_left_lane: The right motor matrix for Braitenberg-like control 
+                                    using the masked left lane markings (numpy.ndarray)
+    """
+    
+    # TODO: these are random values, you have to implement your own solution in here
+    # Convert the image to HSV for any color-based filtering
+    right_matrix_left_lane = np.zeros(shape)
+
+    return right_matrix_left_lane
+
+
+# In[ ]:
+
+
+# The function written in this cell will actually be ran on your robot (sim or real). 
+# Put together the steps above and write your DeltaPhi function! 
+# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
+
+
+#TODO: write a correct function
+
+def get_motor_right_matrix_right_lane_markings(shape):
+    """
+        Args:
+            shape: The shape of the motor matrix (tuple of ints)
+        Return:
+            right_matrix_right_lane: The right motor matrix for Braitenberg-like control 
+                                    using the masked right lane markings (numpy.ndarray)
+    """
+    
+    # TODO: these are random values, you have to implement your own solution in here
+    # Convert the image to HSV for any color-based filtering
+    right_matrix_right_lane = np.zeros(shape)
+    
+    _, w = shape
+    
+    right_matrix_right_lane[:, 0:int(w/2)] = 1.0
+
+    return right_matrix_right_lane
 
 
 # In[21]:
@@ -143,9 +201,5 @@ def detect_lane_markings(image):
     mask_left_edge = mask_mag * mask_sobelx_neg * mask_sobely_neg * mask_yellow
     mask_right_edge = mask_mag * mask_sobelx_pos * mask_sobely_neg * mask_white
     
-    
-    left_masked_img = cv2.addWeighted(img_gaussian_filter, 0.4, (Gmag * mask_left_edge).astype(np.uint8), 0.6, 0)
-    right_masked_img = cv2.addWeighted(img_gaussian_filter, 0.4, (Gmag * mask_right_edge).astype(np.uint8), 0.6, 0)
-    
-    return (left_masked_img, right_masked_img)
+    return (mask_left_edge, mask_right_edge)
 
