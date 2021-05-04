@@ -57,8 +57,10 @@ class LaneServoingNode(DTROS):
 
         # The following are used for the Braitenberg exercise
         self.gain = 0.5
-        self.left_matrix = None
-        self.right_matrix = None
+        self.left_matrix_left_lm = None
+        self.left_matrix_right_lm = None
+        self.right_matrix_left_lm = None
+        self.right_matrix_right_lm = None
 
         # self._top_cutoff = np.floor(0.4 * 480).astype(int)
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
