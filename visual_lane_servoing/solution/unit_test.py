@@ -50,3 +50,25 @@ class UnitTestLMO:
         ax3 = fig.add_subplot(1, 3, 3)
         ax3.imshow(cv2.cvtColor(mask_rt, cv2.COLOR_BGR2RGB))
         ax3.set_title('Mask (Right)'), ax3.set_xticks([]), ax3.set_yticks([])
+
+
+class UnitTestDLM:
+    # Test the detection and estimation of lane marking orientations
+    def __init__(self, detect_lane_markings):
+        imgbgr = cv2.imread('../images/visual_control/test.png')
+
+        left_masked_img, right_masked_img = detect_lane_markings(imgbgr)
+
+        fig = plt.figure(figsize=(20, 5))
+        ax1 = fig.add_subplot(1, 3, 1)
+        # OpenCV uses BGR by default, whereas matplotlib uses RGB, so we generate an RGB version for the sake of visualization
+        ax1.imshow(cv2.cvtColor(imgbgr, cv2.COLOR_BGR2RGB))
+        ax1.set_title('Input image'), ax1.set_xticks([]), ax1.set_yticks([])
+
+        ax2 = fig.add_subplot(1, 3, 2)
+        ax2.imshow(cv2.cvtColor(left_masked_img, cv2.COLOR_BGR2RGB))
+        ax2.set_title('Mask (Left)'), ax2.set_xticks([]), ax2.set_yticks([])
+
+        ax3 = fig.add_subplot(1, 3, 3)
+        ax3.imshow(cv2.cvtColor(right_masked_img, cv2.COLOR_BGR2RGB))
+        ax3.set_title('Mask (Right)'), ax3.set_xticks([]), ax3.set_yticks([])
