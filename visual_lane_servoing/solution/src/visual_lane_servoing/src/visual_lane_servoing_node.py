@@ -134,7 +134,8 @@ class LaneServoingNode(DTROS):
         Call the right functions according to desktop icon the parameter.
         """
 
-        self.VLS_EXERCISE = False
+        self.VLS
+        _EXERCISE = False
 
         self.log("")
         self.log(f"Received activity {msg.data}")
