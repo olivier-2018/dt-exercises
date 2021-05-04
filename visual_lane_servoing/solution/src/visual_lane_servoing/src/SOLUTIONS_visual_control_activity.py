@@ -109,6 +109,7 @@ def LMOrientation(image):
 
     return theta_left, theta_right, left_masked_img, right_masked_img
 
+
 # In[12]:
 
 
@@ -140,3 +141,4 @@ def getMotorResiduals(theta_left, theta_right):
 
 
     return residual_left, residual_right
+
