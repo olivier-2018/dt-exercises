@@ -217,9 +217,7 @@ class LaneServoingNode(DTROS):
                 image:  BGR image from forward-facing camera
         """
 
-        shape = (2,)
-
-        if self.left_matrix is None:
+        if self.left_matrix_left_lm is None:
             self.left_matrix_left_lm = visual_control_activity.get_motor_left_matrix_left_lane_markings(shape)
             self.left_matrix_right_lm = visual_control_activity.get_motor_left_matrix_right_lane_markings(shape)
             self.right_matrix_left_lm = visual_control_activity.get_motor_right_matrix_left_lane_markings(shape)
