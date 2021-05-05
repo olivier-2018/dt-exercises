@@ -29,7 +29,6 @@ def get_steer_matrix_left_lane_markings(shape):
 
     return steer_matrix_left_lane
 
-
 # In[5]:
 
 
@@ -54,7 +53,6 @@ def get_steer_matrix_right_lane_markings(shape):
     steer_matrix_right_lane[:, 0:int(2*w/3)] = 1.0
 
     return steer_matrix_right_lane
-
 
 # In[1]:
 
@@ -129,4 +127,3 @@ def detect_lane_markings(image):
     mask_right_edge = mask_mag * mask_sobelx_pos * mask_sobely_neg * mask_white
     
     return (mask_left_edge, mask_right_edge)
-

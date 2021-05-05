@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Visual Lane Servoing (VLS) Exercise
+Name=VLS - Visual Lane Servoing Exercise
 Comment=MOOC - VLS - Exercise
 Exec=/usr/bin/launch-vls-exercise.sh
 Icon=/root/.icons/exercise-visual-lane-servoing.png
