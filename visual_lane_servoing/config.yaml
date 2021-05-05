@@ -33,4 +33,4 @@ challenge: mooc-viscontrol
 files:
   - notebook:
       target_dir: "solution/src/visual_lane_servoing/src"
-      input_file: "solution/05-Visual-Control/SOLUTIONS_visual_control_activity.ipynb"
+      input_file: "solution/05-Visual-Servoing/SOLUTIONS_visual_servoing_activity.ipynb"

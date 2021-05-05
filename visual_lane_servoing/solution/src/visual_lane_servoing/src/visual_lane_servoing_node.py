@@ -12,7 +12,7 @@ from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
 # TODO: fix this
-import SOLUTIONS_visual_control_activity as visual_control_activity
+import SOLUTIONS_visual_servoing_activity as visual_servoing_activity
 
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown.utils.image.ros import compressed_imgmsg_to_rgb, rgb_to_compressed_imgmsg
@@ -188,12 +188,12 @@ class LaneServoingNode(DTROS):
 
         shape = image.shape[0:2]
 
-        steer_matrix_left_lm = visual_control_activity.get_steer_matrix_left_lane_markings(shape)
-        steer_matrix_right_lm = visual_control_activity.get_steer_matrix_right_lane_markings(shape)
+        steer_matrix_left_lm = visual_servoing_activity.get_steer_matrix_left_lane_markings(shape)
+        steer_matrix_right_lm = visual_servoing_activity.get_steer_matrix_right_lane_markings(shape)
 
         # Call the user-defined function to get the masks for the left
         # and right lane markings
-        (lt_mask, rt_mask) = visual_control_activity.detect_lane_markings(image)
+        (lt_mask, rt_mask) = visual_servoing_activity.detect_lane_markings(image)
 
         # Publish these out for visualization
         lt_mask_viz = cv2.addWeighted(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 0.1,
