@@ -13,24 +13,23 @@ import numpy as np
 
 #TODO: write a correct function
 
-def get_motor_left_matrix_left_lane_markings(shape):
+def get_steer_matrix_left_lane_markings(shape):
     """
         Args:
-            shape: The shape of the motor matrix (tuple of ints)
+            shape: The shape of the steer matrix (tuple of ints)
         Return:
-            left_matrix_left_lane: The left motor matrix for Braitenberg-like control 
-                                   using the masked left lane markings (numpy.ndarray)
+            steer_matrix_left_lane: The steering (angular rate) matrix for Braitenberg-like control 
+                                    using the masked left lane markings (numpy.ndarray)
     """
     
     # TODO: these are random values, you have to implement your own solution in here
-    # Convert the image to HSV for any color-based filtering
-    left_matrix_left_lane = np.zeros(shape)
+    steer_matrix_left_lane = np.zeros(shape)
     
     _, w = shape
     
-    left_matrix_left_lane[:, int(w/2):w] = 1.0
+    steer_matrix_left_lane[:, int(w/2):w] = -1.0
 
-    return left_matrix_left_lane
+    return steer_matrix_left_lane
 
 
 # In[5]:
@@ -40,79 +39,28 @@ def get_motor_left_matrix_left_lane_markings(shape):
 # Put together the steps above and write your DeltaPhi function! 
 # DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
 
+import cv2
+import numpy as np
 
 #TODO: write a correct function
 
-def get_motor_left_matrix_right_lane_markings(shape):
+def get_steer_matrix_right_lane_markings(shape):
     """
         Args:
-            shape: The shape of the motor matrix (tuple of ints)
+            shape: The shape of the steer matrix (tuple of ints)
         Return:
-            left_matrix_right_lane: The left motor matrix for Braitenberg-like control 
-                                    using the masked right lane markings (numpy.ndarray)
+            steer_matrix_right_lane: The steering (angular rate) matrix for Braitenberg-like control 
+                                     using the masked right lane markings (numpy.ndarray)
     """
     
     # TODO: these are random values, you have to implement your own solution in here
-    # Convert the image to HSV for any color-based filtering
-    left_matrix_right_lane = np.zeros(shape)
-
-    return left_matrix_right_lane
-
-
-# In[ ]:
-
-
-# The function written in this cell will actually be ran on your robot (sim or real). 
-# Put together the steps above and write your DeltaPhi function! 
-# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
-
-
-#TODO: write a correct function
-
-def get_motor_right_matrix_left_lane_markings(shape):
-    """
-        Args:
-            shape: The shape of the motor matrix (tuple of ints)
-        Return:
-            right_matrix_left_lane: The right motor matrix for Braitenberg-like control 
-                                    using the masked left lane markings (numpy.ndarray)
-    """
-    
-    # TODO: these are random values, you have to implement your own solution in here
-    # Convert the image to HSV for any color-based filtering
-    right_matrix_left_lane = np.zeros(shape)
-
-    return right_matrix_left_lane
-
-
-# In[ ]:
-
-
-# The function written in this cell will actually be ran on your robot (sim or real). 
-# Put together the steps above and write your DeltaPhi function! 
-# DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
-
-
-#TODO: write a correct function
-
-def get_motor_right_matrix_right_lane_markings(shape):
-    """
-        Args:
-            shape: The shape of the motor matrix (tuple of ints)
-        Return:
-            right_matrix_right_lane: The right motor matrix for Braitenberg-like control 
-                                    using the masked right lane markings (numpy.ndarray)
-    """
-    
-    # TODO: these are random values, you have to implement your own solution in here
-    # Convert the image to HSV for any color-based filtering
-    right_matrix_right_lane = np.zeros(shape)
+    steer_matrix_right_lane = np.zeros(shape)
     
     _, w = shape
     
-    right_matrix_right_lane[:, 0:int(w/2)] = 1.0
+    steer_matrix_right_lane[:, 0:int(w/2)] = 1.0
 
-    return right_matrix_right_lane
+    return steer_matrix_right_lane
 
 
 # In[21]:

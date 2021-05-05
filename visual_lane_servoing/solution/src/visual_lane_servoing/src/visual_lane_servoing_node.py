@@ -6,9 +6,8 @@ import cv2
 import numpy as np
 import rospy
 import yaml
-from duckietown_msgs.msg import EpisodeStart, WheelsCmdStamped
+from duckietown_msgs.msg import EpisodeStart, Twist2DStamped
 from sensor_msgs.msg import CompressedImage
-from std_msgs.msg import String
 
 # TODO: fix this
 import SOLUTIONS_visual_control_activity as visual_control_activity
@@ -49,7 +48,7 @@ class LaneServoingNode(DTROS):
 
         # The following are used for the Braitenberg exercise
         self.v_0 = 0.1  # Forward velocity command
-        self.omega_max = 1.0  # Maximum omega used to scale normalized steering command
+        self.omega_max = 8.3  # Maximum omega used to scale normalized steering command
         self.steer_matrix_left_lm = None
         self.steer_matrix_right_lm = None
 
@@ -97,12 +96,12 @@ class LaneServoingNode(DTROS):
         # rospy.Subscriber(episode_start_topic, EpisodeStart, self.cbEpisodeStart, queue_size=1)
 
         # Command publisher
-        self.pub_wheels_cmd = rospy.Publisher(
-            f"/{self.veh}/wheels_driver_node/wheels_cmd",
-            WheelsCmdStamped,
-            queue_size=1,
-            dt_topic_type=TopicType.CONTROL
-        )
+        # self.pub_wheels_cmd = rospy.Publisher(
+        #     f"/{self.veh}/wheels_driver_node/wheels_cmd",
+        #     WheelsCmdStamped,
+        #     queue_size=1,
+        #     dt_topic_type=TopicType.CONTROL
+        # )
 
         # Command publisher
         car_cmd_topic = f"/{self.veh}/joy_mapper_node/car_cmd"
@@ -223,17 +222,20 @@ class LaneServoingNode(DTROS):
         # and right lane markings
         (lt_mask, rt_mask) = visual_control_activity.detect_lane_markings(image)
         
-        steer = float(np.sum(lt_mask * self.steer_matrix_left_lm)) + float(np.sum(rt_mask * self.steer_matrix_right_lm))
+        steer = float(np.sum(lt_mask * self.steer_matrix_left_lm)) + \
+                float(np.sum(rt_mask * self.steer_matrix_right_lm))
+
+        self.steer_max = max(self.steer_max, 2 * max(float(np.sum(lt_mask * self.steer_matrix_left_lm)), float(np.sum(rt_mask * self.steer_matrix_right_lm))))
 
         # These are big numbers -- we want to normalize them.
         # We normalize them using the history
 
         # first, we remember the high/low of these raw signals
-        self.steer_max = max(l, self.steer_max)
-        self.steer_min = min(l, self.steer_min)
+        # self.steer_max = max(steer, self.steer_max)
+        # self.steer_min = min(steer, self.steer_min)
 
         # now rescale from 0 to 1
-        steer_scaled = rescale(steer, self.steer_min, self.steer_max)
+        steer_scaled = np.sign(steer) * rescale(np.abs(steer), 0, self.steer_max)
 
         u = [self.v_0, steer_scaled * self.omega_max]
         self.publish_command(u)
@@ -260,7 +262,7 @@ class LaneServoingNode(DTROS):
         """Publishes a car command message.
 
         Args:
-            omega (:obj:`double`): omega for the control action.
+            u (:obj:`tuple(double, double)`): tuple containing [v, w] for the control action.
         """
 
         car_control_msg = Twist2DStamped()
