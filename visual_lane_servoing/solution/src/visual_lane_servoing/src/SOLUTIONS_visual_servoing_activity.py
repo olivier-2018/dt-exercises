@@ -56,7 +56,7 @@ def get_steer_matrix_right_lane_markings(shape):
     return steer_matrix_right_lane
 
 
-# In[21]:
+# In[1]:
 
 
 # The function written in this cell will actually be ran on your robot (sim or real). 

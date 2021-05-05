@@ -13,6 +13,7 @@ from std_msgs.msg import String
 
 # TODO: fix this
 import SOLUTIONS_visual_servoing_activity as visual_servoing_activity
+import SOLUTIONS_visual_control_activity as visual_control_activity
 
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown.utils.image.ros import compressed_imgmsg_to_rgb, rgb_to_compressed_imgmsg
@@ -55,6 +56,14 @@ class LaneServoingNode(DTROS):
         # The following are used for scaling
         self.steer_max = -1
 
+        # The following are used for the visual control (PID) exercise
+        self.theta_ref = 0.0  # Desired lane-relative heading
+        self.theta_hat_curr = 0.0
+        # Initializing the PID controller parameters
+        self.prev_e = 0.0  # previous tracking error, starts at 0
+        self.prev_int = 0.0  # previous tracking error integral, starts at 0
+        self.time = 0.0
+
         # self._top_cutoff = np.floor(0.4 * 480).astype(int)
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
 
@@ -71,6 +80,7 @@ class LaneServoingNode(DTROS):
         # Flags for a joyful learning experience
         # (spins only parts of this code depending on the icons pressed on the VNC desktop)
         self.VLS_EXERCISE = False
+        self.VC_EXERCISE = False
 
         # Active only when submitting and evaluating (PID Exercise)
         if self.AIDO_eval:
@@ -119,15 +129,23 @@ class LaneServoingNode(DTROS):
         """
         self.loginfo(f"ACTION: {self.VLS_ACTION}")
 
-        if msg.data not in ["init", "calibration", "go", "stop"]:
+        if msg.data not in ["init_vls", "init_vc", "calibration", "go", "stop"]:
             self.log(f"Activity '{msg.data}' not recognized. Exiting...")
             exit(1)
 
         self.VLS_ACTION = msg.data
 
         if not self.AIDO_eval:
-            if self.VLS_ACTION == "init":
+            if self.VLS_ACTION == "init_vls":
+                self.VLS_EXERCISE = True
+                self.VC_EXERCISE = False
                 self.log("Put the robot in a lane. Press [Calibrate] when done.")
+                return
+
+            if self.VLS_ACTION == "init_vc":
+                self.VLS_EXERCISE = False
+                self.VC_EXERCISE = True
+                self.log("Put the robot in a lane. Press [Go] when done.")
                 return
 
             if self.VLS_ACTION == "calibration":
@@ -173,11 +191,50 @@ class LaneServoingNode(DTROS):
         (top, bottom), (left, right) = self._cutoff
         image = image[top:-bottom, left:-right, :]
 
-        self.perform_vls(image)
+        if self.VLS_EXERCISE:
+            self.perform_vls(image)
+        elif self.VC_EXERCISE:
+            self.perform_vc(image)
+
+
+    def perform_vc(self, image):
+        """
+            Computes angular rate (omega) using a PID controller
+            based on the estimated orientation of the robot relative to the lane
+            Args:
+                self:
+                image:  BGR image from forward-facing camera
+        """
+        if self.is_shutdown:
+            self.publish_command([0, 0])
+            return
+
+        time_now = time.time()
+        delta_time = time_now - self.time
+
+        self.time = time_now
+
+        (self.theta_hat_curr, lines_left, lines_right) = visual_control_activity.estimate_lane_relative_heading(image)
+
+        u, self.prev_e, self.prev_int = PID_controller.PIDController(self.v_0, self.theta_ref,
+                                                                     self.theta_hat_curr, self.prev_e,
+                                                                     self.prev_int, delta_time)
+
+        # Override the forward velocity in case the PIDController changed it
+        u[0] = self.v_0
+
+        if self.VLS_ACTION != "go" or self.VLS_STOPPED:
+            return
+
+        self.publish_command(u)
+
+        # self.logging to screen for debugging purposes
+        self.log("    VISUAL CONTROL    ")
+        self.log(f"Command v : {np.round(u[0], 2)},  omega : {np.round(u[1], 2)}")
 
     def perform_vls(self, image):
         """
-            Computes the PWM commands for the left and right motors using a Braitenberg-like controller
+            Computes the angular rate (omega) using a Braitenberg-like controller
             Args:
                 self:
                 image:  BGR image from forward-facing camera
