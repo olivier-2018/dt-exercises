@@ -44,23 +44,18 @@ class LaneServoingNode(DTROS):
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
 
-        # Add the node parameters to the parameters dictionary
-
-        self.theta_left = None
-        self.theta_right = None
-
-        self.cmd_left = 0.0
-        self.cmd_right = 0.0
-
         self.y_prev = 0.0
         self.theta_prev = 0.0
 
         # The following are used for the Braitenberg exercise
-        self.gain = 0.1
-        self.left_matrix_left_lm = None
-        self.left_matrix_right_lm = None
-        self.right_matrix_left_lm = None
-        self.right_matrix_right_lm = None
+        self.v_0 = 0.1  # Forward velocity command
+        self.omega_max = 1.0  # Maximum omega used to scale normalized steering command
+        self.steer_matrix_left_lm = None
+        self.steer_matrix_right_lm = None
+
+        # The following are used for scaling
+        self.steer_max = -math.inf
+        self.steer_min = math.inf
 
         # self._top_cutoff = np.floor(0.4 * 480).astype(int)
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
@@ -69,14 +64,6 @@ class LaneServoingNode(DTROS):
         self._cutoff = ((int(0.5 * h), int(0.01 * h)), (int(0.1 * w), int(0.1 * w)))
 
         self.VLS_ACTIVITY = False
-
-        # Parameters relevant to motor commands
-        self.left_const = 0.1
-        self.right_const = 0.1
-        self.left_max = -math.inf
-        self.right_max = -math.inf
-        self.left_min = math.inf
-        self.right_min = math.inf
 
         # Used for AIDO evaluation
         self.AIDO_eval = rospy.get_param(f"/{self.veh}/AIDO_eval", False)
@@ -115,6 +102,12 @@ class LaneServoingNode(DTROS):
             WheelsCmdStamped,
             queue_size=1,
             dt_topic_type=TopicType.CONTROL
+        )
+
+        # Command publisher
+        car_cmd_topic = f"/{self.veh}/joy_mapper_node/car_cmd"
+        self.pub_car_cmd = rospy.Publisher(
+            car_cmd_topic, Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL
         )
 
         self._lt_mask_pub = rospy.Publisher(
@@ -222,36 +215,28 @@ class LaneServoingNode(DTROS):
 
         shape = image.shape[0:2]
 
-        if self.left_matrix_left_lm is None:
-            self.left_matrix_left_lm = visual_control_activity.get_motor_left_matrix_left_lane_markings(shape)
-            self.left_matrix_right_lm = visual_control_activity.get_motor_left_matrix_right_lane_markings(shape)
-            self.right_matrix_left_lm = visual_control_activity.get_motor_right_matrix_left_lane_markings(shape)
-            self.right_matrix_right_lm = visual_control_activity.get_motor_right_matrix_right_lane_markings(shape)
+        if self.steer_matrix_left_lm is None:
+            self.steer_matrix_left_lm = visual_control_activity.get_steer_matrix_left_lane_markings(shape)
+            self.steer_matrix_right_lm = visual_control_activity.get_steer_matrix_right_lane_markings(shape)
 
         # Call the user-defined function to get the masks for the left
         # and right lane markings
         (lt_mask, rt_mask) = visual_control_activity.detect_lane_markings(image)
-
-        l = float(np.sum(lt_mask * self.left_matrix_left_lm)) + float(np.sum(rt_mask * self.left_matrix_right_lm))
-        r = float(np.sum(lt_mask * self.right_matrix_left_lm)) + float(np.sum(rt_mask * self.right_matrix_right_lm))
+        
+        steer = float(np.sum(lt_mask * self.steer_matrix_left_lm)) + float(np.sum(rt_mask * self.steer_matrix_right_lm))
 
         # These are big numbers -- we want to normalize them.
         # We normalize them using the history
 
         # first, we remember the high/low of these raw signals
-        self.left_max = max(l, self.left_max)
-        self.right_max = max(r, self.right_max)
-        self.left_min = min(l, self.left_min)
-        self.right_min = min(r, self.right_min)
+        self.steer_max = max(l, self.steer_max)
+        self.steer_min = min(l, self.steer_min)
 
         # now rescale from 0 to 1
-        ls = rescale(l, self.left_min, self.left_max)
-        rs = rescale(r, self.right_min, self.right_max)
+        steer_scaled = rescale(steer, self.steer_min, self.steer_max)
 
-        pwm_left = self.left_const + self.gain * ls
-        pwm_right = self.right_const + self.gain * rs
-
-        self.publish_command(pwm_left, pwm_right)
+        u = [self.v_0, steer_scaled * self.omega_max]
+        self.publish_command(u)
 
         # Publish these out for visualization
         lt_mask = cv2.addWeighted(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), 0.1,
@@ -267,63 +252,24 @@ class LaneServoingNode(DTROS):
 
         # self.logging to screen for debugging purposes
         self.log("    VISUAL SERVOING    ")
-        self.log(f"Left: (Unnormalized) : {np.round(l, 1)},"
-                 f"  Right (Unnormalized) : {np.round(r, 1)}")
-        self.log(f"Left: (Normalized) : {np.round(ls, 1)},"
-                 f"  Right (Normalized) : {np.round(rs, 1)}")
-        self.log(f"Command (Left) : {pwm_left},  Command (Right) : {pwm_right}")
+        self.log(f"Steering: (Unnormalized) : {np.round(steer, 1)},"
+                 f"  Steering (Normalized) : {np.round(steer_scaled, 1)}")
+        self.log(f"Command v : {u[0]},  omega : {u[1]}")
 
-    def compute_commands(self, residual_left, residual_right):
-        """
-        Computes the PWM commands for the left and right motors
-        Args:
-            self:
-            residual_left:  Residual for the left motor (double)
-            residual_right: Residual for the right motor (double)
-
-        Returns:
-            pwm_left:  Command for the left motor (double)
-            pwm_right: Command for the right motor (double)
-
-        """
-
-        # These are big numbers -- we want to normalize them.
-        # We normalize them using the history
-
-        # first, we remember the high/low of these raw signals
-        self.left_max = max(residual_left, self.left_max)
-        self.right_max = max(residual_right, self.right_max)
-        self.left_min = min(residual_left, self.left_min)
-        self.right_min = min(residual_right, self.right_min)
-
-        # now rescale from 0 to 1
-        ls = rescale(residual_left, self.left_min, self.left_max)
-        rs = rescale(residual_right, self.right_min, self.right_max)
-
-        pwm_left = self.left_const + ls
-        pwm_right = self.right_const + rs
-
-        return pwm_left, pwm_right
-
-    def publish_command(self, cmd_left, cmd_right):
-        """Publishes a wheel command message.
+    def publish_command(self, u):
+        """Publishes a car command message.
 
         Args:
-            cmd_left (:obj:`double`): Command for the left wheel.
-            cmd_right (:obj:`double`): Command for the right wheel.
+            omega (:obj:`double`): omega for the control action.
         """
 
-        # limiting output to limit, which is 1.0 for the duckiebot
-        cmd_right_limited = self.trim(cmd_right, -1.0, 1.0)
-        cmd_left_limited = self.trim(cmd_left, -1.0, 1.0)
+        car_control_msg = Twist2DStamped()
+        car_control_msg.header.stamp = rospy.Time.now()
 
-        # Put the wheel commands in a message and publish
-        msg_wheels_cmd = WheelsCmdStamped()
-        msg_wheels_cmd.header.stamp = rospy.Time.now()
+        car_control_msg.v = u[0]  # v
+        car_control_msg.omega = u[1]  # omega
 
-        msg_wheels_cmd.vel_right = cmd_right_limited
-        msg_wheels_cmd.vel_left = cmd_left_limited
-        self.pub_wheels_cmd.publish(msg_wheels_cmd)
+        self.pub_car_cmd.publish(car_control_msg)
 
     @staticmethod
     def trim(value, low, high):
