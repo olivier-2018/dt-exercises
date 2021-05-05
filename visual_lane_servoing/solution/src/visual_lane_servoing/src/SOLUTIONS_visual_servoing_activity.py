@@ -11,7 +11,6 @@
 import cv2
 import numpy as np
 
-#TODO: write a correct function
 
 def get_steer_matrix_left_lane_markings(shape):
     """
@@ -22,7 +21,6 @@ def get_steer_matrix_left_lane_markings(shape):
                                     using the masked left lane markings (numpy.ndarray)
     """
     
-    # TODO: these are random values, you have to implement your own solution in here
     steer_matrix_left_lane = np.zeros(shape)
     
     _, w = shape
@@ -38,10 +36,6 @@ def get_steer_matrix_left_lane_markings(shape):
 # Put together the steps above and write your DeltaPhi function! 
 # DO NOT CHANGE THE NAME OF THIS FUNCTION, INPUTS OR OUTPUTS, OR THINGS WILL BREAK
 
-import cv2
-import numpy as np
-
-#TODO: write a correct function
 
 def get_steer_matrix_right_lane_markings(shape):
     """
@@ -52,7 +46,6 @@ def get_steer_matrix_right_lane_markings(shape):
                                      using the masked right lane markings (numpy.ndarray)
     """
     
-    # TODO: these are random values, you have to implement your own solution in here
     steer_matrix_right_lane = np.zeros(shape)
     
     _, w = shape
@@ -71,7 +64,6 @@ def get_steer_matrix_right_lane_markings(shape):
 import cv2
 import numpy as np
 
-#TODO: write a correct function
 
 def detect_lane_markings(image):
     """
@@ -108,13 +100,6 @@ def detect_lane_markings(image):
 
     mask_mag = (Gmag > threshold)
     
-#     white_lower_hsv = np.array([0/2, 3*255/100, 52*255/100])
-#     white_upper_hsv = np.array([360/2, 26*255/100, 96*255/100])
-#     yellow_lower_hsv = np.array([44/2, 48*255/100, 48*255/100])
-#     yellow_upper_hsv = np.array([55/2, 110*255/100, 85*255/100])
-    
-    
-    
     white_lower_hsv = np.array([0/2, int(3*255/100), int(52*255/100)])
     white_upper_hsv = np.array([360/2, int(26*255/100), int(100*255/100)])
     yellow_lower_hsv = np.array([44/2, int(48*255/100), int(48*255/100)])
@@ -133,16 +118,10 @@ def detect_lane_markings(image):
     mask_right = np.ones(sobelx.shape)
     mask_right[:,0:int(np.floor(width/2))] = 0
     
-    
     mask_sobelx_pos = (sobelx > 0)
     mask_sobelx_neg = (sobelx < 0)
     mask_sobely_pos = (sobely > 0)
     mask_sobely_neg = (sobely < 0)
-    
-    # Let's generate the complete set of masks, including those based on color
-#     mask_left_edge = mask_left * mask_mag * mask_sobelx_neg * mask_sobely_neg * mask_yellow
-#     mask_right_edge = mask_right * mask_mag * mask_sobelx_pos * mask_sobely_neg * mask_white
-    
     
     mask_left_edge = mask_mag * mask_yellow
     mask_right_edge = mask_mag * mask_sobelx_pos * mask_sobely_neg * mask_white
