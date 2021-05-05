@@ -53,7 +53,7 @@ class LaneServoingNode(DTROS):
         self.omega_max = 8.3  # Maximum omega used to scale normalized steering command
 
         # The following are used for scaling
-        self.steer_max = -math.inf
+        self.steer_max = -1
 
         # self._top_cutoff = np.floor(0.4 * 480).astype(int)
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
@@ -61,8 +61,8 @@ class LaneServoingNode(DTROS):
         w, h = 640, 480
         self._cutoff = ((int(0.5 * h), int(0.01 * h)), (int(0.1 * w), int(0.1 * w)))
 
-        self.VLS_ACTIVITY = False
-        self.VLS_CALIBRATED = False
+        self.VLS_ACTION = None
+        self.VLS_STOPPED = True
 
         # Used for AIDO evaluation
         self.AIDO_eval = rospy.get_param(f"/{self.veh}/AIDO_eval", False)
@@ -87,7 +87,7 @@ class LaneServoingNode(DTROS):
         )
 
         # select the current activity
-        rospy.Subscriber(f"/{self.veh}/activity_name", String, self.cb_activity, queue_size=1)
+        rospy.Subscriber(f"/{self.veh}/vls_node/action", String, self.cb_action, queue_size=1)
 
         # Command publisher
         car_cmd_topic = f"/{self.veh}/joy_mapper_node/car_cmd"
@@ -113,33 +113,40 @@ class LaneServoingNode(DTROS):
         self.log("Initialized!")
         self.log("Waiting for the Exercise App \"Visual Lane Servoing\" to be opened in VNC...")
 
-
-        # TODO: DEBUG ONLY
-        self.VLS_ACTIVITY = True
-        self.VLS_CALIBRATED = True
-
-    def cb_activity(self, msg):
+    def cb_action(self, msg):
         """
         Call the right functions according to desktop icon the parameter.
         """
-        self.log("")
-        self.log(f"Received activity {msg.data}")
-        self.log("")
-        vls_activity = msg.data == "vls"
-        if not vls_activity:
+        self.loginfo(f"ACTION: {self.VLS_ACTION}")
+
+        if msg.data not in ["init", "calibration", "go", "stop"]:
             self.log(f"Activity '{msg.data}' not recognized. Exiting...")
             exit(1)
+
+        self.VLS_ACTION = msg.data
+
         if not self.AIDO_eval:
-            self.log("Put the robot in a lane. Press [ENTER] when done.")
-            # TODO: this is not supported by DTS and Docker Attach the way it is implemented right now
-            # _ = input()
-            self.log("Using your hands if you are working with a real robot, or the joystick if "
-                     "you are working with the simulator. Turn the robot (in place), to the left "
-                     "then to the right by about 30deg on each side. Press [ENTER] when done.")
-            # TODO: this is not supported by DTS and Docker Attach the way it is implemented right now
-            # _ = input()
-            self.VLS_CALIBRATED = vls_activity
-        self.VLS_ACTIVITY = vls_activity
+            if self.VLS_ACTION == "init":
+                self.log("Put the robot in a lane. Press [Calibrate] when done.")
+                return
+
+            if self.VLS_ACTION == "calibration":
+                self.log("Using your hands if you are working with a real robot, or the joystick if "
+                         "you are working with the simulator. Turn the robot (in place), to the left "
+                         "then to the right by about 30deg on each side. Press [Go] when done.")
+                return
+
+            if self.VLS_ACTION == "go":
+                self.log(f"Calibration value: {int(self.steer_max)}")
+                self.VLS_STOPPED = False
+                # NOTE: this is needed to trigger the agent and get another image back
+                self.publish_command([0, 0])
+                return
+
+            if self.VLS_ACTION == "stop":
+                self.publish_command([0, 0])
+                self.VLS_STOPPED = True
+                return
 
     def cb_image(self, image_msg):
         """
@@ -179,9 +186,6 @@ class LaneServoingNode(DTROS):
             self.publish_command([0, 0])
             return
 
-        if not self.VLS_ACTIVITY:
-            return
-
         shape = image.shape[0:2]
 
         steer_matrix_left_lm = visual_control_activity.get_steer_matrix_left_lane_markings(shape)
@@ -203,15 +207,20 @@ class LaneServoingNode(DTROS):
         self._lt_mask_pub.publish(lt_mask_viz)
         self._rt_mask_pub.publish(rt_mask_viz)
 
-        if not self.VLS_CALIBRATED:
+        if self.VLS_ACTION == "calibration":
+            self.steer_max = max(self.steer_max,
+                                 2 * max(float(np.sum(lt_mask * steer_matrix_left_lm)),
+                                         float(np.sum(rt_mask * steer_matrix_right_lm))))
+
+        if self.VLS_ACTION != "go" or self.VLS_STOPPED:
+            return
+
+        if self.steer_max == -1:
+            self.logerr("Not Calibrated!")
             return
 
         steer = float(np.sum(lt_mask * steer_matrix_left_lm)) + \
                 float(np.sum(rt_mask * steer_matrix_right_lm))
-
-        self.steer_max = max(self.steer_max, 2 * max(float(np.sum(lt_mask * steer_matrix_left_lm)),
-                                                     float(
-                                                         np.sum(rt_mask * steer_matrix_right_lm))))
 
         # now rescale from 0 to 1
         steer_scaled = np.sign(steer) * rescale(np.abs(steer), 0, self.steer_max)
@@ -221,9 +230,9 @@ class LaneServoingNode(DTROS):
 
         # self.logging to screen for debugging purposes
         self.log("    VISUAL SERVOING    ")
-        self.log(f"Steering: (Unnormalized) : {np.round(steer, 1)},"
+        self.log(f"Steering: (Unnormalized) : {int(steer)} / {int(self.steer_max)},"
                  f"  Steering (Normalized) : {np.round(steer_scaled, 1)}")
-        self.log(f"Command v : {u[0]},  omega : {u[1]}")
+        self.log(f"Command v : {np.round(u[0], 2)},  omega : {np.round(u[1], 2)}")
 
     def publish_command(self, u):
         """Publishes a car command message.
