@@ -1,4 +1,4 @@
-map_name: MOOC_modcon
+map_name: MOOC_visservoing
 robots_npcs: []
 robots_pcs: [ego0]
 robots_parked: []
