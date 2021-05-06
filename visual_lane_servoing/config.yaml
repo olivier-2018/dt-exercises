@@ -33,4 +33,4 @@ challenge: mooc-visservoing
 files:
   - notebook:
       target_dir: "solution/src/visual_lane_servoing/src"
-      input_file: "solution/05-Visual-Servoing/SOLUTIONS_visual_servoing_activity.ipynb"
+      input_file: "solution/05-Visual-Servoing/visual_servoing_activity.ipynb"

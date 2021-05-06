@@ -12,9 +12,7 @@ from duckietown_msgs.msg import Twist2DStamped
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown.utils.image.ros import compressed_imgmsg_to_rgb
 
-# TODO: fix this
-import SOLUTIONS_visual_lane_following_activity as visual_lane_following_activity
-# import visual_lane_following_activity
+import visual_lane_following_activity
 
 
 class LaneFollowingNode(DTROS):

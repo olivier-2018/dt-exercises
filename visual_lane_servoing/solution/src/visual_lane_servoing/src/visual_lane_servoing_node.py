@@ -12,9 +12,7 @@ from duckietown_msgs.msg import Twist2DStamped
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown.utils.image.ros import compressed_imgmsg_to_rgb, rgb_to_compressed_imgmsg
 
-# TODO: fix this
-import SOLUTIONS_visual_servoing_activity as visual_servoing_activity
-# import visual_servoing_activity
+import visual_servoing_activity
 
 
 class LaneServoingNode(DTROS):
