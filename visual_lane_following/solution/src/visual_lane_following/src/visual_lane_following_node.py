@@ -221,8 +221,8 @@ class LaneFollowingNode(DTROS):
 
     def read_params_from_calibration_file(self):
         """
-        Reads the saved parameters from `/data/config/calibrations/kinematics/DUCKIEBOTNAME.yaml`
-        or uses the default values if the file doesn't exist. Adjsuts the ROS paramaters for the
+        Reads the saved parameters from `/data/config/calibrations/camera_extrinsics/DUCKIEBOTNAME.yaml`
+        or uses the default values if the file doesn't exist. Adjusts the ROS parameters for the
         node with the new values.
         """
 
