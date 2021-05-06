@@ -117,13 +117,14 @@ class LaneFollowingNode(DTROS):
         """
         Call the right functions according to desktop icon the parameter.
         """
-        self.loginfo(f"ACTION: {self.VLF_ACTION}")
 
         if msg.data not in ["init", "go", "stop"]:
             self.log(f"Activity '{msg.data}' not recognized. Exiting...")
             exit(1)
 
         self.VLF_ACTION = msg.data
+
+        self.loginfo(f"ACTION: {self.VLF_ACTION}")
 
         if not self.AIDO_eval:
             if self.VLF_ACTION == "init":
