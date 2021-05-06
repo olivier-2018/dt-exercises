@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
-import time
+import os
 import cv2
+import yaml
+import time
 import rospy
 import numpy as np
-from typing import Optional
 
-from std_msgs.msg import String
-from sensor_msgs.msg import CompressedImage
 from duckietown_msgs.msg import Twist2DStamped
+from sensor_msgs.msg import CompressedImage
+from std_msgs.msg import String
+
+import visual_servoing_activity
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown.utils.image.ros import compressed_imgmsg_to_rgb, rgb_to_compressed_imgmsg
-
-# TODO: fix this
-import SOLUTIONS_visual_servoing_activity as visual_servoing_activity
-# import visual_servoing_activity
 
 
 class LaneServoingNode(DTROS):
@@ -93,7 +92,7 @@ class LaneServoingNode(DTROS):
         # Get the steering gain (omega_max) from the calibration file
         # It defines the maximum omega used to scale normalized steering command
         kinematics_calib = self.read_params_from_calibration_file()
-        self.omega_max = kinematics_calib['steer_gain']
+        self.omega_max = kinematics_calib['omega_max']
 
         for _ in range(5):
             self.log("Initializing...")

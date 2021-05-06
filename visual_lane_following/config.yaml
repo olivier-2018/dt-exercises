@@ -33,4 +33,4 @@ challenge: mooc-viscontrol
 files:
   - notebook:
       target_dir: "solution/src/visual_lane_following/src"
-      input_file: "solution/01-Visual-Control/SOLUTIONS_visual_lane_following_activity.ipynb"
+      input_file: "solution/01-Visual-Control/visual_lane_following_activity.ipynb"
