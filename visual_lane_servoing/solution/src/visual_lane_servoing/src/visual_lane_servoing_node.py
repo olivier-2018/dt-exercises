@@ -39,7 +39,6 @@ class LaneServoingNode(DTROS):
 
         # The following are used for the Braitenberg exercise
         self.v_0 = 0.15  # Forward velocity command
-        self.omega_max = 8.3  # Maximum omega used to scale normalized steering command
 
         # The following are used for scaling
         self.steer_max = -1
@@ -88,6 +87,11 @@ class LaneServoingNode(DTROS):
             CompressedImage,
             queue_size=1
         )
+
+        # Get the steering gain (omega_max) from the calibration file
+        # It defines the maximum omega used to scale normalized steering command
+        kinematics_calib = self.read_params_from_calibration_file()
+        self.omega_max = kinematics_calib['steer_gain']
 
         for _ in range(5):
             self.log("Initializing...")
@@ -246,6 +250,32 @@ class LaneServoingNode(DTROS):
             return theta + 2 * np.pi
         else:
             return theta
+
+    def read_params_from_calibration_file(self):
+        """
+        Reads the saved parameters from `/data/config/calibrations/kinematics/DUCKIEBOTNAME.yaml`
+        or uses the default values if the file doesn't exist. Adjusts the ROS parameters for the
+        node with the new values.
+        """
+
+        def readFile(fname):
+            with open(fname, "r") as in_file:
+                try:
+                    return yaml.load(in_file, Loader=yaml.FullLoader)
+                except yaml.YAMLError as exc:
+                    self.logfatal("YAML syntax error. File: %s fname. Exc: %s" % (fname, exc))
+                    return None
+
+        # Check file existence
+        cali_file_folder = "/data/config/calibrations/kinematics/"
+        fname = cali_file_folder + self.veh + ".yaml"
+        # Use the default values from the config folder if a robot-specific file does not exist.
+        if not os.path.isfile(fname):
+            fname = cali_file_folder + "default.yaml"
+            self.logwarn("Kinematic calibration %s not found! Using default instead." % fname)
+            return readFile(fname)
+        else:
+            return readFile(fname)
 
     def on_shutdown(self):
         self.loginfo("Stopping motors...")
