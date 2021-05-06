@@ -9,7 +9,8 @@ source /code/solution/devel/setup.bash --extend
 
 roslaunch --wait agent agent_node.launch &
 roslaunch --wait car_interface all.launch veh:=$VEHICLE_NAME &
-roslaunch visual_lane_following visual_lane_following_node.launch veh:=$VEHICLE_NAME AIDO_eval:="true"
 sleep 5
+roslaunch visual_lane_following visual_lane_following_node.launch veh:=$VEHICLE_NAME AIDO_eval:="true"
+
 #roslaunch encoder_pose encoder_pose_node.launch veh:=$VEHICLE_NAME AIDO_eval:="true"
 # rostopic pub /$VEHICLE_NAME/activity_name std_msgs/String "data: pid_exercise" --latch

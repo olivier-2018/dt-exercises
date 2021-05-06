@@ -64,15 +64,10 @@ class LaneFollowingNode(DTROS):
         self.AIDO_eval = rospy.get_param(f"/{self.veh}/AIDO_eval", False)
         self.log(f"AIDO EVAL VAR: {self.AIDO_eval}")
 
-        # Flags for a joyful learning experience
-        # (spins only parts of this code depending on the icons pressed on the VNC desktop)
-        self.VLF_EXERCISE = False
-        self.VC_EXERCISE = False
-
         # Active only when submitting and evaluating (PID Exercise)
         if self.AIDO_eval:
-            self.VLF_EXERCISE = True
             self.log("Starting evaluation for Visual Lane Following.")
+            self.VLF_STOPPED = False
 
         # Defining subscribers:
         rospy.Subscriber(
