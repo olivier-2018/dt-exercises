@@ -31,11 +31,6 @@ class LaneServoingNode(DTROS):
             compressed image
     """
 
-    right_tick_prev: Optional[int]
-    left_tick_prev: Optional[int]
-    delta_phi_left: float
-    delta_phi_right: float
-
     def __init__(self, node_name):
         # Initialize the DTROS parent class
         super(LaneServoingNode, self).__init__(node_name=node_name,
@@ -43,9 +38,6 @@ class LaneServoingNode(DTROS):
         self.log("Initializing...")
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
-
-        self.y_prev = 0.0
-        self.theta_prev = 0.0
 
         # The following are used for the Braitenberg exercise
         self.v_0 = 0.15  # Forward velocity command
@@ -109,13 +101,14 @@ class LaneServoingNode(DTROS):
         """
         Call the right functions according to desktop icon the parameter.
         """
-        self.loginfo(f"ACTION: {self.VLS_ACTION}")
 
         if msg.data not in ["init", "calibration", "go", "stop"]:
             self.log(f"Activity '{msg.data}' not recognized. Exiting...")
             exit(1)
 
         self.VLS_ACTION = msg.data
+
+        self.loginfo(f"ACTION: {self.VLS_ACTION}")
 
         if not self.AIDO_eval:
             if self.VLS_ACTION == "init":
@@ -206,7 +199,8 @@ class LaneServoingNode(DTROS):
                 float(np.sum(rt_mask * steer_matrix_right_lm))
 
         # now rescale from 0 to 1
-        steer_scaled = np.sign(steer) * rescale(np.abs(steer), 0, self.steer_max)
+        steer_scaled = np.sign(steer) * \
+                       rescale(min(np.abs(steer), self.steer_max), 0, self.steer_max)
 
         u = [self.v_0, steer_scaled * self.omega_max]
         self.publish_command(u)
