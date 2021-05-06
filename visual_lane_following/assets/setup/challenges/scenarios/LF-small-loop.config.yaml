@@ -1,4 +1,4 @@
-map_name: MOOC_viscontrol
+map_name: small_loop
 robots_npcs: []
 robots_pcs: [ego0]
 robots_parked: []
@@ -7,7 +7,7 @@ dist_tol_m: 0.04
 min_dist: 0.5
 delta_y_m: 0.04
 only_straight: true
-tree_density: 1.0
+tree_density: 0.0
 
 nduckies: 0
 duckie_min_dist_from_other_duckie: 0.3
