@@ -65,6 +65,7 @@ class LaneFollowingNode(DTROS):
         # Active only when submitting and evaluating (PID Exercise)
         if self.AIDO_eval:
             self.log("Starting evaluation for Visual Lane Following.")
+            self.VLF_ACTION = "go"
             self.VLF_STOPPED = False
 
         # Defining subscribers:
