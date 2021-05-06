@@ -1,4 +1,4 @@
-map_name: MOOC_visservoing
+map_name: small_loop
 robots_npcs: []
 robots_pcs: [ego0]
 robots_parked: []
