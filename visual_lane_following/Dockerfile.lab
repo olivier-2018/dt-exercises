@@ -10,5 +10,6 @@ COPY assets/vnc/image/root/icons/. /root/.icons/
 COPY assets/vnc/image/usr/bin/. /usr/bin/
 COPY assets/vnc/image/opt/ros/noetic/share/rviz/. /opt/ros/noetic/share/rviz/
 
+RUN rm /root/Desktop/intrinsic_calibration.desktop
 
 CMD ["dt-launcher-jupyter"]
