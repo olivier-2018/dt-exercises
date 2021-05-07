@@ -54,9 +54,6 @@ class LaneFollowingNode(DTROS):
         # self._top_cutoff = np.floor(0.4 * 480).astype(int)
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
 
-        w, h = 640, 480
-        self._cutoff = ((int(0.5 * h), int(0.01 * h)), (int(0.1 * w), int(0.1 * w)))
-
         self.VLF_ACTION = None
         self.VLF_STOPPED = True
 
@@ -160,10 +157,6 @@ class LaneFollowingNode(DTROS):
         if img_size[0] != width_original or img_size[1] != height_original:
             image = cv2.resize(image, tuple(reversed(img_size)), interpolation=cv2.INTER_NEAREST)
 
-        # crop image
-        (top, bottom), (left, right) = self._cutoff
-        image = image[top:-bottom, left:-right, :]
-
         if self.is_shutdown:
             self.publish_command([0, 0])
             return
@@ -179,6 +172,8 @@ class LaneFollowingNode(DTROS):
                                                                      self.theta_hat_curr, self.prev_e,
                                                                      self.prev_int, delta_time)
 
+        self.publish_lines_as_marker(lm_left_ground, lm_right_ground)
+
         # Override the forward velocity in case the PIDController changed it
         u[0] = self.v_0
 
@@ -186,7 +181,6 @@ class LaneFollowingNode(DTROS):
             return
 
         self.publish_command(u)
-        self.publish_lines_as_marker(lm_left_ground, lm_right_ground)
 
         # self.logging to screen for debugging purposes
         self.log("    VISUAL CONTROL    ")
@@ -228,10 +222,10 @@ class LaneFollowingNode(DTROS):
             marker_right.header.stamp = rospy.Time.now()
             marker_right.id = 0
             marker_right.action = marker_right.ADD
-            marker_right.lifetime = rospy.Duration.from_sec(5.0)
+            marker_right.lifetime = rospy.Duration.from_sec(0.5)
             marker_right.type = marker_right.LINE_LIST
 
-            marker_right.scale.x = 0.05
+            marker_right.scale.x = 0.025
             marker_right.scale.y = 0.2
             marker_right.scale.z = 0.2
 
@@ -268,10 +262,10 @@ class LaneFollowingNode(DTROS):
             marker_left.header.stamp = rospy.Time.now()
             marker_left.id = 1
             marker_left.action = marker_left.ADD
-            marker_left.lifetime = rospy.Duration.from_sec(5.0)
+            marker_left.lifetime = rospy.Duration.from_sec(0.5)
             marker_left.type = marker_left.LINE_LIST
 
-            marker_left.scale.x = 0.05
+            marker_left.scale.x = 0.025
             marker_left.scale.y = 0.2
             marker_left.scale.z = 0.2
 
