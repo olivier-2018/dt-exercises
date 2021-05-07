@@ -8,6 +8,8 @@ import numpy as np
 import yaml
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
+from geometry_msgs.msg import Point
+from visualization_msgs.msg import Marker
 from duckietown_msgs.msg import Twist2DStamped
 from duckietown.dtros import DTROS, NodeType, TopicType
 from duckietown.utils.image.ros import compressed_imgmsg_to_rgb
@@ -52,9 +54,6 @@ class LaneFollowingNode(DTROS):
         # self._top_cutoff = np.floor(0.4 * 480).astype(int)
         # self._bottom_cutoff = np.floor(0.08 * 480).astype(int)
 
-        w, h = 640, 480
-        self._cutoff = ((int(0.5 * h), int(0.01 * h)), (int(0.1 * w), int(0.1 * w)))
-
         self.VLF_ACTION = None
         self.VLF_STOPPED = True
 
@@ -86,16 +85,18 @@ class LaneFollowingNode(DTROS):
             car_cmd_topic, Twist2DStamped, queue_size=1, dt_topic_type=TopicType.CONTROL
         )
 
-        self._lt_mask_pub = rospy.Publisher(
-            f"/{self.veh}/visual_lane_following/left_mask/image/compressed",
-            CompressedImage,
-            queue_size=1
+        self._lt_lm_pub = rospy.Publisher(
+            f"/{self.veh}/visual_lane_following/left_lane_markings",
+            Marker,
+            queue_size=1,
+            dt_topic_type=TopicType.PERCEPTION
         )
 
-        self._rt_mask_pub = rospy.Publisher(
-            f"/{self.veh}/visual_lane_following/right_mask/image/compressed",
-            CompressedImage,
-            queue_size=1
+        self._rt_lm_pub = rospy.Publisher(
+            f"/{self.veh}/visual_lane_following/right_lane_markings",
+            Marker,
+            queue_size=1,
+            dt_topic_type=TopicType.PERCEPTION
         )
 
         ext_calib = self.read_params_from_calibration_file()
@@ -157,10 +158,6 @@ class LaneFollowingNode(DTROS):
         if img_size[0] != width_original or img_size[1] != height_original:
             image = cv2.resize(image, tuple(reversed(img_size)), interpolation=cv2.INTER_NEAREST)
 
-        # crop image
-        (top, bottom), (left, right) = self._cutoff
-        image = image[top:-bottom, left:-right, :]
-
         if self.is_shutdown:
             self.publish_command([0, 0])
             return
@@ -170,11 +167,13 @@ class LaneFollowingNode(DTROS):
 
         self.time = time_now
 
-        (self.theta_hat_curr, lines_left, lines_right) = visual_lane_following_activity.estimate_lane_relative_heading(self.H, image)
+        (self.theta_hat_curr, lm_left_ground, lm_right_ground) = visual_lane_following_activity.estimate_lane_relative_heading(self.H, image)
 
         u, self.prev_e, self.prev_int = visual_lane_following_activity.PIDController(self.v_0, self.theta_ref,
                                                                      self.theta_hat_curr, self.prev_e,
                                                                      self.prev_int, delta_time)
+
+        self.publish_lines_as_marker(lm_left_ground, lm_right_ground)
 
         # Override the forward velocity in case the PIDController changed it
         u[0] = self.v_0
@@ -203,6 +202,102 @@ class LaneFollowingNode(DTROS):
 
         self.pub_car_cmd.publish(car_control_msg)
 
+    def publish_lines_as_marker(self, lm_left_ground, lm_right_ground):
+        """
+            Publishes markers to visualize line segments.
+
+            Args:
+                lm_left_ground:  An n x 4 array of candidate lines for the right lane markings (numpy.ndarray)
+                                 Each row [x0, y0, x1, y1] specifies the line-segment coordinate in the ground frame
+                lm_right_ground: An m x 4 array of candidate lines for the left lane markings (numpy.ndarray)
+                                 Each row [x0, y0, x1, y1] specifies the line-segment coordinate in the ground frame
+
+            Returns:
+                the trimmed value
+        """
+
+        # Right lane markings
+        if (lm_right_ground is not None) and lm_right_ground.size != 0:
+            marker_right = Marker()
+            marker_right.header.frame_id = "map"#self.veh
+            marker_right.header.stamp = rospy.Time.now()
+            marker_right.id = 0
+            marker_right.action = marker_right.ADD
+            marker_right.lifetime = rospy.Duration.from_sec(0.5)
+            marker_right.type = marker_right.LINE_LIST
+
+            marker_right.scale.x = 0.025
+            marker_right.scale.y = 0.2
+            marker_right.scale.z = 0.2
+
+            marker_right.color.r = 1.0
+            marker_right.color.g = 1.0
+            marker_right.color.b = 1.0
+            marker_right.color.a = 1.0
+
+            marker_right.pose.position.x = 0.0
+            marker_right.pose.position.y = 0.0
+            marker_right.pose.position.z = 0.0
+            marker_right.pose.orientation.w = 1.0
+
+            marker_right.points = []
+            for line in lm_right_ground:
+                line = line.flatten()
+                p1 = Point()
+                p2 = Point()
+                p1.x = line[0]
+                p1.y = line[1]
+                p1.z = 0.0
+                p2.x = line[2]
+                p2.y = line[3]
+                p2.z = 0.0
+
+                marker_right.points.append(p1)
+                marker_right.points.append(p2)
+            self._rt_lm_pub.publish(marker_right)
+
+        # Left lane markings
+        if (lm_left_ground is not None) and lm_left_ground.size != 0:
+            marker_left = Marker()
+            marker_left.header.frame_id = "map"#self.veh
+            marker_left.header.stamp = rospy.Time.now()
+            marker_left.id = 1
+            marker_left.action = marker_left.ADD
+            marker_left.lifetime = rospy.Duration.from_sec(0.5)
+            marker_left.type = marker_left.LINE_LIST
+
+            marker_left.scale.x = 0.025
+            marker_left.scale.y = 0.2
+            marker_left.scale.z = 0.2
+
+            marker_left.color.r = 1.0
+            marker_left.color.g = 1.0
+            marker_left.color.b = 0.0
+            marker_left.color.a = 1.0
+
+            marker_left.pose.position.x = 0.0
+            marker_left.pose.position.y = 0.0
+            marker_left.pose.position.z = 0.0
+            marker_left.pose.orientation.w = 1.0
+
+            marker_left.points = []
+            for line in lm_left_ground:
+                line = line.flatten()
+                p1 = Point()
+                p2 = Point()
+                p1.x = line[0]
+                p1.y = line[1]
+                p1.z = 0.0
+                p2.x = line[2]
+                p2.y = line[3]
+                p2.z = 0.0
+
+                marker_left.points.append(p1)
+                marker_left.points.append(p2)
+
+            self._lt_lm_pub.publish(marker_left)
+
+
     @staticmethod
     def trim(value, low, high):
         """
@@ -220,8 +315,8 @@ class LaneFollowingNode(DTROS):
 
     def read_params_from_calibration_file(self):
         """
-        Reads the saved parameters from `/data/config/calibrations/kinematics/DUCKIEBOTNAME.yaml`
-        or uses the default values if the file doesn't exist. Adjsuts the ROS paramaters for the
+        Reads the saved parameters from `/data/config/calibrations/camera_extrinsics/DUCKIEBOTNAME.yaml`
+        or uses the default values if the file doesn't exist. Adjusts the ROS parameters for the
         node with the new values.
         """
 
