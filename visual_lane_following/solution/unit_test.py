@@ -30,34 +30,24 @@ class UnitTestELRH:
         if lines_left is not None:
             # Visualize the edges projected on to the ground plane
             for line in lines_left:
-                [[x1, y1, x2, y2]] = line
-                xy1 = np.array([[x1, y1]]).transpose()
-                xy2 = np.array([[x2, y2]]).transpose()
+                [x1, y1, x2, y2] = line
 
-                # Project to the ground frame
-                XY1 = project_image_to_ground(H, xy1)
-                XY2 = project_image_to_ground(H, xy2)
+                X = np.array([x1, x2])
+                Y = np.array([y1, y2])
 
-                X = np.array([XY1[0], XY2[0]])
-                Y = np.array([XY1[1], XY2[1]])
-                # The ground reference frame has positive X up and positivy Y left
+                # The ground reference frame has positive X up and positive Y left
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax2.plot(-Y, X, 'g-')
 
         if lines_right is not None:
             # Visualize the edges projected on to the ground plane
             for line in lines_right:
-                [[x1, y1, x2, y2]] = line
-                xy1 = np.array([[x1, y1]]).transpose()
-                xy2 = np.array([[x2, y2]]).transpose()
+                [x1, y1, x2, y2] = line
 
-                # Project to the ground frame
-                XY1 = project_image_to_ground(H, xy1)
-                XY2 = project_image_to_ground(H, xy2)
+                X = np.array([x1, x2])
+                Y = np.array([y1, y2])
 
-                X = np.array([XY1[0], XY2[0]])
-                Y = np.array([XY1[1], XY2[1]])
-                # The ground reference frame has positive X up and positivy Y left
+                # The ground reference frame has positive X up and positive Y left
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax2.plot(-Y, X, 'b-')
 
@@ -74,16 +64,11 @@ class UnitTestELRH:
         if lines_left is not None:
             # Visualize the edges projected on to the ground plane
             for line in lines_left:
-                [[x1, y1, x2, y2]] = line
-                xy1 = np.array([[x1, y1]]).transpose()
-                xy2 = np.array([[x2, y2]]).transpose()
+                [x1, y1, x2, y2] = line
 
-                # Project to the ground frame
-                XY1 = project_image_to_ground(H, xy1)
-                XY2 = project_image_to_ground(H, xy2)
+                X = np.array([x1, x2])
+                Y = np.array([y1, y2])
 
-                X = np.array([XY1[0], XY2[0]])
-                Y = np.array([XY1[1], XY2[1]])
                 # The ground reference frame has positive X up and positivy Y left
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax4.plot(-Y, X, 'g-')
@@ -91,16 +76,11 @@ class UnitTestELRH:
         if lines_right is not None:
             # Visualize the edges projected on to the ground plane
             for line in lines_right:
-                [[x1, y1, x2, y2]] = line
-                xy1 = np.array([[x1, y1]]).transpose()
-                xy2 = np.array([[x2, y2]]).transpose()
+                [x1, y1, x2, y2] = line
 
-                # Project to the ground frame
-                XY1 = project_image_to_ground(H, xy1)
-                XY2 = project_image_to_ground(H, xy2)
+                X = np.array([x1, x2])
+                Y = np.array([y1, y2])
 
-                X = np.array([XY1[0], XY2[0]])
-                Y = np.array([XY1[1], XY2[1]])
                 # The ground reference frame has positive X up and positivy Y left
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax4.plot(-Y, X, 'b-')
