@@ -231,7 +231,7 @@ class LaneFollowingNode(DTROS):
             marker_right.lifetime = rospy.Duration.from_sec(5.0)
             marker_right.type = marker_right.LINE_LIST
 
-            marker_right.scale.x = 0.2
+            marker_right.scale.x = 0.05
             marker_right.scale.y = 0.2
             marker_right.scale.z = 0.2
 
@@ -271,7 +271,7 @@ class LaneFollowingNode(DTROS):
             marker_left.lifetime = rospy.Duration.from_sec(5.0)
             marker_left.type = marker_left.LINE_LIST
 
-            marker_left.scale.x = 0.2
+            marker_left.scale.x = 0.05
             marker_left.scale.y = 0.2
             marker_left.scale.z = 0.2
 
