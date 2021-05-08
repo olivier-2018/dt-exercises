@@ -170,8 +170,8 @@ class LaneFollowingNode(DTROS):
         (self.theta_hat_curr, lm_left_ground, lm_right_ground) = visual_lane_following_activity.estimate_lane_relative_heading(self.H, image)
 
         u, self.prev_e, self.prev_int = visual_lane_following_activity.PIDController(self.v_0, self.theta_ref,
-                                                                     self.theta_hat_curr, self.prev_e,
-                                                                     self.prev_int, delta_time)
+                                                                                     self.theta_hat_curr, self.prev_e,
+                                                                                     self.prev_int, delta_time)
 
         self.publish_lines_as_marker(lm_left_ground, lm_right_ground)
 
@@ -185,6 +185,8 @@ class LaneFollowingNode(DTROS):
 
         # self.logging to screen for debugging purposes
         self.log("    VISUAL CONTROL    ")
+        self.log(f"Estimate theta_hat : {np.round(self.theta_hat_curr*180/np.pi, 2)}")
+        self.log(f"Control error : {np.round(self.prev_e, 2)}, integral : {np.round(self.prev_int, 2)}")
         self.log(f"Command v : {np.round(u[0], 2)},  omega : {np.round(u[1], 2)}")
 
     def publish_command(self, u):
