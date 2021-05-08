@@ -187,7 +187,14 @@ class LaneFollowingNode(DTROS):
         # Override the forward velocity in case the PIDController changed it
         u[0] = self.v_0
 
+        # self.logging to screen for debugging purposes
+        self.log("    VISUAL CONTROL    ")
+        self.log(f"Estimate theta_hat : {np.round(self.theta_hat_curr * 180 / np.pi, 2)}")
+
         if self.VLF_ACTION != "go" or self.VLF_STOPPED:
+            # self.logging to screen for debugging purposes
+            self.log("    VISUAL CONTROL (INACTIVE)    ")
+            self.log(f"Estimate theta_hat : {np.round(self.theta_hat_curr * 180 / np.pi, 2)}")
             return
 
         self.publish_command(u)
