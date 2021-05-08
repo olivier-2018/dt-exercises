@@ -1,5 +1,5 @@
 payload_yaml: |
-   calibration_value: 150000
+   calibration_value: 300000
 robots:
   ego0:
     color: red
