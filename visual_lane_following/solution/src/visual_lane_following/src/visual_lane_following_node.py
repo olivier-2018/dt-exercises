@@ -69,7 +69,7 @@ class LaneFollowingNode(DTROS):
 
         # Defining subscribers:
         rospy.Subscriber(
-            f"/{self.veh}/rectifier_node/image/compressed",
+            f"/{self.veh}/camera_node/image/compressed",
             CompressedImage,
             self.cb_image,
             buff_size=10000000,
@@ -242,8 +242,8 @@ class LaneFollowingNode(DTROS):
         p1.x = 0.0
         p1.y = 0.0
         p1.z = 0.0
-        p2.x = np.cos(theta_hat) * 0.5
-        p2.y = np.sin(theta_hat) * 0.5
+        p2.x = np.cos(-theta_hat) * 0.5
+        p2.y = np.sin(-theta_hat) * 0.5
         p2.z = 0.0
 
         theta_marker.points.append(p1)
