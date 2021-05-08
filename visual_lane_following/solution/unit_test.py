@@ -16,7 +16,7 @@ class UnitTestELRH:
 
         H = np.reshape(H, (3, 3))
 
-        theta_hat, lines_left, lines_right = estimate_lane_relative_heading(H, imgbgr_straight)
+        theta_hat, lines_yellow, lines_white = estimate_lane_relative_heading(H, imgbgr_straight)
 
         print('First Image: theta_hat: %.2f degrees' % (theta_hat*180/np.pi))
         fig = plt.figure(figsize=(20, 20))
@@ -26,10 +26,10 @@ class UnitTestELRH:
         ax1.set_title('Input image'), ax1.set_xticks([]), ax1.set_yticks([])
 
         ax2 = fig.add_subplot(2, 2, 2)
-        ax2.set_title('Lines Projected on Ground Plane'), ax2.set_xticks([]), ax2.set_yticks([]);
-        if lines_left is not None:
+        ax2.set_title('Lines Projected on Ground Plane')
+        if lines_yellow is not None:
             # Visualize the edges projected on to the ground plane
-            for line in lines_left:
+            for line in lines_yellow:
                 [x1, y1, x2, y2] = line
 
                 X = np.array([x1, x2])
@@ -39,9 +39,9 @@ class UnitTestELRH:
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax2.plot(-Y, X, 'g-')
 
-        if lines_right is not None:
+        if lines_white is not None:
             # Visualize the edges projected on to the ground plane
-            for line in lines_right:
+            for line in lines_white:
                 [x1, y1, x2, y2] = line
 
                 X = np.array([x1, x2])
@@ -51,7 +51,7 @@ class UnitTestELRH:
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax2.plot(-Y, X, 'b-')
 
-        theta_hat, lines_left, lines_right = estimate_lane_relative_heading(H, imgbgr_turn)
+        theta_hat, lines_yellow, lines_white = estimate_lane_relative_heading(H, imgbgr_turn)
 
         print('Second Image: theta_hat: %.2f degrees' % (theta_hat * 180 / np.pi))
         ax3 = fig.add_subplot(2, 2, 3)
@@ -60,10 +60,10 @@ class UnitTestELRH:
         ax3.set_title('Input image'), ax3.set_xticks([]), ax3.set_yticks([])
 
         ax4 = fig.add_subplot(2, 2, 4)
-        ax4.set_title('Lines Projected on Ground Plane'), ax4.set_xticks([]), ax4.set_yticks([]);
-        if lines_left is not None:
+        ax4.set_title('Lines Projected on Ground Planes')
+        if lines_yellow is not None:
             # Visualize the edges projected on to the ground plane
-            for line in lines_left:
+            for line in lines_yellow:
                 [x1, y1, x2, y2] = line
 
                 X = np.array([x1, x2])
@@ -73,15 +73,15 @@ class UnitTestELRH:
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax4.plot(-Y, X, 'g-')
 
-        if lines_right is not None:
+        if lines_white is not None:
             # Visualize the edges projected on to the ground plane
-            for line in lines_right:
+            for line in lines_white:
                 [x1, y1, x2, y2] = line
 
                 X = np.array([x1, x2])
                 Y = np.array([y1, y2])
 
-                # The ground reference frame has positive X up and positivy Y left
+                # The ground reference frame has positive X up and positive Y left
                 # So, for the sake of plotting we treat X as Y, and Y as -X
                 ax4.plot(-Y, X, 'b-')
 
