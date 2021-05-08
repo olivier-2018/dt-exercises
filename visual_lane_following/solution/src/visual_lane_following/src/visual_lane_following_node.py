@@ -96,7 +96,14 @@ class LaneFollowingNode(DTROS):
             f"/{self.veh}/visual_lane_following/right_lane_markings",
             Marker,
             queue_size=1,
-            dt_topic_type=TopicType.PERCEPTION
+            dt_topic_type=TopicType.VISUALIZATION
+        )
+
+        self._theta_pub = rospy.Publisher(
+            f"/{self.veh}/visual_lane_following/lane_orientation",
+            Marker,
+            queue_size=1,
+            dt_topic_type=TopicType.VISUALIZATION
         )
 
         ext_calib = self.read_params_from_calibration_file()
@@ -173,6 +180,8 @@ class LaneFollowingNode(DTROS):
                                                                                      self.theta_hat_curr, self.prev_e,
                                                                                      self.prev_int, delta_time)
 
+        self.publish_estimated_orientation_as_marker(self.theta_hat_curr)
+
         self.publish_lines_as_marker(lm_left_ground, lm_right_ground)
 
         # Override the forward velocity in case the PIDController changed it
@@ -203,6 +212,43 @@ class LaneFollowingNode(DTROS):
         car_control_msg.omega = u[1]  # omega
 
         self.pub_car_cmd.publish(car_control_msg)
+
+    def publish_estimated_orientation_as_marker(self, theta_hat):
+        theta_marker = Marker()
+        theta_marker.header.frame_id = "map"
+        theta_marker.header.stamp = rospy.Time.now()
+        theta_marker.id = 2
+        theta_marker.action = theta_marker.ADD
+        theta_marker.lifetime = rospy.Duration.from_sec(0.5)
+        theta_marker.type = theta_marker.ARROW
+
+        theta_marker.scale.x = 0.03
+        theta_marker.scale.y = 0.05
+        theta_marker.scale.z = 0.0
+
+        theta_marker.color.r = 0.0
+        theta_marker.color.g = 1.0
+        theta_marker.color.b = 1.0
+        theta_marker.color.a = 1.0
+
+        theta_marker.pose.position.x = 0.0
+        theta_marker.pose.position.y = 0.0
+        theta_marker.pose.position.z = 0.0
+        theta_marker.pose.orientation.w = 1.0
+
+        theta_marker.points = []
+        p1 = Point()
+        p2 = Point()
+        p1.x = 0.0
+        p1.y = 0.0
+        p1.z = 0.0
+        p2.x = np.cos(theta_hat) * 0.5
+        p2.y = np.sin(theta_hat) * 0.5
+        p2.z = 0.0
+
+        theta_marker.points.append(p1)
+        theta_marker.points.append(p2)
+        self._theta_pub.publish(theta_marker)
 
     def publish_lines_as_marker(self, lm_left_ground, lm_right_ground):
         """
