@@ -246,7 +246,7 @@ class LaneFollowingNode(DTROS):
 
         theta_marker.points.append(p1)
         theta_marker.points.append(p2)
-        self._rt_lm_pub.publish(theta_marker)
+        self._theta_pub.publish(theta_marker)
 
     def publish_lines_as_marker(self, lm_left_ground, lm_right_ground):
         """
