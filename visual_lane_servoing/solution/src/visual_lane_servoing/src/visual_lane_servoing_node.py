@@ -7,7 +7,7 @@ import time
 import rospy
 import numpy as np
 
-from duckietown_msgs.msg import Twist2DStamped
+from duckietown_msgs.msg import Twist2DStamped, EpisodeStart
 from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 
@@ -56,7 +56,6 @@ class LaneServoingNode(DTROS):
 
         # Active only when submitting and evaluating (PID Exercise)
         if self.AIDO_eval:
-            self.VLS_EXERCISE = True
             self.log("Starting evaluation for Visual Lane Servoing.")
 
         # Defining subscribers:
@@ -67,6 +66,10 @@ class LaneServoingNode(DTROS):
             buff_size=10000000,
             queue_size=1
         )
+
+        # AIDO challenge payload subscriber
+        episode_start_topic = f"/{self.veh}/episode_start"
+        rospy.Subscriber(episode_start_topic, EpisodeStart, self.cb_episode_start, queue_size=1)
 
         # select the current activity
         rospy.Subscriber(f"/{self.veh}/vls_node/action", String, self.cb_action, queue_size=1)
@@ -99,6 +102,17 @@ class LaneServoingNode(DTROS):
             time.sleep(1)
         self.log("Initialized!")
         self.log("Waiting for the Exercise App \"Visual Lane Servoing\" to be opened in VNC...")
+
+    def cb_episode_start(self, msg: EpisodeStart):
+        loaded = yaml.load(msg.other_payload_yaml, Loader=yaml.FullLoader)
+        if "steer_max" in loaded:
+            self.steer_max = loaded["steer_max"]
+            # release robot
+            self.VLS_ACTION = "go"
+            self.VLS_STOPPED = False
+        else:
+            self.logwarn("No calibration value received. If you are running this on a real robot "
+                         "or on local simulation you can ignore this message.")
 
     def cb_action(self, msg):
         """

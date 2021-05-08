@@ -1,3 +1,5 @@
+payload_yaml: |
+   calibration_value: 150000
 robots:
   ego0:
     color: red
@@ -17,9 +19,6 @@ duckies: {}
 environment: "tiles:\n- - curve_left/W\n  - straight/W\n  - curve_left/N\n- - straight/S\n\
   \  - asphalt\n  - straight/N\n- - curve_left/S\n  - straight/E\n  - curve_left/E\n\
   tile_size: 0.585\nobjects: {}\n"
-payload_yaml: 'info: fill here the yaml
-
-  '
 player_robots:
 - ego0
 scenario_name: LF-small-loop-000
