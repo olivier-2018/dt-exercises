@@ -95,7 +95,7 @@ class LaneServoingNode(DTROS):
         # Get the steering gain (omega_max) from the calibration file
         # It defines the maximum omega used to scale normalized steering command
         kinematics_calib = self.read_params_from_calibration_file()
-        self.omega_max = kinematics_calib['omega_max']
+        self.omega_max = kinematics_calib.get('omega_max', 6.0)
 
         for _ in range(5):
             self.log("Initializing...")
