@@ -82,12 +82,12 @@ Visualization Manager:
         Shaft Length: 0.5
         Shaft Radius: 0.05000000074505806
         Value: Axes
-      Topic: /myrobot/encoder_localization
+      Topic: /agent/encoder_localization
       Unreliable: false
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /myrobot/camera_node/image
+      Image Topic: /agent/camera_node/image
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -99,7 +99,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /myrobot/visual_lane_following/left_lane_markings
+      Marker Topic: /agent/visual_lane_following/left_lane_markings
       Name: Marker
       Namespaces:
         "": true
@@ -107,7 +107,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /myrobot/visual_lane_following/right_lane_markings
+      Marker Topic: /agent/visual_lane_following/right_lane_markings
       Name: Marker
       Namespaces:
         "": true
