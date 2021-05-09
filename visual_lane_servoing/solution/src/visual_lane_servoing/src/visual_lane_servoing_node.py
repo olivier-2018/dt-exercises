@@ -106,12 +106,15 @@ class LaneServoingNode(DTROS):
     def cb_episode_start(self, msg: EpisodeStart):
         loaded = yaml.load(msg.other_payload_yaml, Loader=yaml.FullLoader)
         if "calibration_value" in loaded:
-            self.steer_max = loaded["calibration_value"]
-            # release robot
-            self.VLS_ACTION = "go"
-            self.VLS_STOPPED = False
-            # NOTE: this is needed to trigger the agent and get another image back
-            self.publish_command([0, 0])
+            if self.AIDO_eval:
+                self.steer_max = loaded["calibration_value"]
+                # release robot
+                self.VLS_ACTION = "go"
+                self.VLS_STOPPED = False
+                # NOTE: this is needed to trigger the agent and get another image back
+                self.publish_command([0, 0])
+            else:
+                self.loginfo("Given calibration ignored as the test is running locally.")
         else:
             self.logwarn("No calibration value received. If you are running this on a real robot "
                          "or on local simulation you can ignore this message.")
