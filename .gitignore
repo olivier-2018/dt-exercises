@@ -14,3 +14,7 @@ catkin_ws/.catkin_tools/
 *resolved
 .ipynb_checkpoints
 *-filtered*
+/visual_lane_following/assets/setup/challenges/out/defined/mooc-viscontrol.challenge_description.yaml
+/visual_lane_following/solution/src/visual_lane_following/src/visual_lane_following_activity.py
+/visual_lane_servoing/assets/setup/challenges/out/defined/mooc-visservoing.challenge_description.yaml
+/visual_lane_servoing/solution/src/visual_lane_servoing/src/visual_servoing_activity.py
