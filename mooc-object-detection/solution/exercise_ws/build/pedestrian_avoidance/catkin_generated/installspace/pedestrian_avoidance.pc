@@ -1,8 +1,0 @@
-prefix=/code/exercise_ws/install
-
-Name: pedestrian_avoidance
-Description: Description of pedestrian_avoidance
-Version: 1.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

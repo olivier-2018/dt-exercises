@@ -3,13 +3,13 @@
 
   
 agent_base: "rpl_ros_baseline" # currently not implemented, the agent base image to use
-ws_dir: "exercise_ws" # directory that contains the code the user needs to see
+ws_dir: "solution/exercise_ws" # directory that contains the code the user needs to see
 lab_dir: .         # directory to be mounted into the jupyter container
 agent_run_cmd: "run_all.sh" # the script in "launchers" to run the agent with
 ros: true
 
-files:
+notebooks:
   - notebook:
-      target_dir: "solution/exercise_ws/src/encoder_pose/src"
-      input_file: "solution/odometry_activity.ipynb"
+      package_name: "obj_det"
+      name: "obj_det_activity"
 
