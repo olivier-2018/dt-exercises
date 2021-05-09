@@ -160,10 +160,13 @@ class LaneFollowingNode(DTROS):
         """
         image = compressed_imgmsg_to_rgb(image_msg)
         # Resize the image to the desired dimensionsS
-        height_original, width_original = image.shape[0:2]
-        img_size = image.shape[0:2]
-        if img_size[0] != width_original or img_size[1] != height_original:
-            image = cv2.resize(image, tuple(reversed(img_size)), interpolation=cv2.INTER_NEAREST)
+        # height_original, width_original = image.shape[0:2]
+        # img_size = image.shape[0:2]
+        # print(img_size)
+        # print('width_original = %d, height_original = %d' % (width_original, height_original))
+        # if img_size[0] != width_original or img_size[1] != height_original:
+        #     image = cv2.resize(image, tuple(reversed(img_size)), interpolation=cv2.INTER_NEAREST)
+        #     print('RESIZING IMAGE')
 
         if self.is_shutdown:
             self.publish_command([0, 0])
