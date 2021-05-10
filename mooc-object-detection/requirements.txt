@@ -1,0 +1,4 @@
+aido-protocols-daffy
+
+opencv-python>=3.4
+pyyaml>=3.11
