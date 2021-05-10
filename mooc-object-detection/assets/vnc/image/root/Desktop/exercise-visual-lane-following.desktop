@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VLF - Visual Lane Following Exercise
+Comment=MOOC - VLF - Exercise
+Exec=/usr/bin/launch-vlf-exercise.sh
+Icon=/root/.icons/exercise-visual-lane-following.png
+Terminal=true
+X-KeepTerminal=true
+StartupNotify=true
