@@ -1,6 +1,0 @@
-pedestrian_avoidance
-/code/solution/devel/.private/pedestrian_avoidance/cmake.lock /code/solution/devel/./cmake.lock
-/code/solution/devel/.private/pedestrian_avoidance/lib/python3/dist-packages/pedestrian_avoidance/__init__.py /code/solution/devel/lib/python3/dist-packages/pedestrian_avoidance/__init__.py
-/code/solution/devel/.private/pedestrian_avoidance/lib/pkgconfig/pedestrian_avoidance.pc /code/solution/devel/lib/pkgconfig/pedestrian_avoidance.pc
-/code/solution/devel/.private/pedestrian_avoidance/share/pedestrian_avoidance/cmake/pedestrian_avoidanceConfig-version.cmake /code/solution/devel/share/pedestrian_avoidance/cmake/pedestrian_avoidanceConfig-version.cmake
-/code/solution/devel/.private/pedestrian_avoidance/share/pedestrian_avoidance/cmake/pedestrian_avoidanceConfig.cmake /code/solution/devel/share/pedestrian_avoidance/cmake/pedestrian_avoidanceConfig.cmake
