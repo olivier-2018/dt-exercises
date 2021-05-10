@@ -1,0 +1,5 @@
+car_interface
+/code/solution/devel/.private/car_interface/cmake.lock /code/solution/devel/./cmake.lock
+/code/solution/devel/.private/car_interface/lib/pkgconfig/car_interface.pc /code/solution/devel/lib/pkgconfig/car_interface.pc
+/code/solution/devel/.private/car_interface/share/car_interface/cmake/car_interfaceConfig-version.cmake /code/solution/devel/share/car_interface/cmake/car_interfaceConfig-version.cmake
+/code/solution/devel/.private/car_interface/share/car_interface/cmake/car_interfaceConfig.cmake /code/solution/devel/share/car_interface/cmake/car_interfaceConfig.cmake
