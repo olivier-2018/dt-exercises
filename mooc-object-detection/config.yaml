@@ -28,6 +28,7 @@ ws_dir: "solution" # directory that contains the code the user needs to see
 lab_dir: .         # directory to be mounted into the jupyter container
 agent_run_cmd: "run_pedestrian.sh" # the script in "launchers" to run the agent with
 ros: true
+challenge: mooc-viscontrol
 #challenge: mooc-viscontrol TODO change to LF pedestrian
 
 
