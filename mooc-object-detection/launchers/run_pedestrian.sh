@@ -4,6 +4,8 @@ source /environment.sh
 source /code/submission_ws/devel/setup.bash --extend
 source /code/solution/devel/setup.bash --extend
 
+pip3 install git+https://github.com/velythyl/lib-dt-mooc-2021 # TODO change this to duckietown once we're merged...
+
 # initialize launch file
 dt-launchfile-init
 
