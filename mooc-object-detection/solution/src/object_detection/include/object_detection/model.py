@@ -1,6 +1,5 @@
 import ctypes
 
-from dt_mooc.utils import we_are_running_on_the_jetson
 
 def run(input, exception_on_failure=False):
     try:
@@ -15,9 +14,9 @@ def run(input, exception_on_failure=False):
     return program_output.strip()
 
 class Wrapper():
-    def __init__(self):
-        dt_token = "TODO" # TODO you must add your token here!
-        model_name = "TODO" # TODO you must add your model's name here!
+    def __init__(self, _):
+        dt_token = "dt1-3nT8KSoxVh4MdLnE1Bq2mTkhRpbR35G8mmbjExH5deTkpsN-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbffvW31zEoh35fcbiTrhMQoFvGEH9ztHXBc" # TODO you must add your token here!
+        model_name = "yolov5" # TODO you must add your model's name here!
 
         from dt_mooc.cloud import Storage
         storage = Storage(dt_token)

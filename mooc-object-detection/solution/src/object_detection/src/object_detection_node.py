@@ -20,6 +20,7 @@ class ObjectDetectionNode(DTROS):
             node_name=node_name,
             node_type=NodeType.PERCEPTION
         )
+        self.initialized = False
 
 
 
