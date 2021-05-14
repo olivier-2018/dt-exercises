@@ -6,9 +6,6 @@ source /code/submission_ws/devel/setup.bash --extend
 source /code/solution/devel/setup.bash --extend
 
 pip3 install git+https://github.com/velythyl/lib-dt-mooc-2021 # TODO change this to duckietown once we're merged...
-#pip3 install pandas tqdm seaborn matplotlib>=3.2.2 numpy>=1.18.5 opencv-python>=4.1.2 scipy>=1.4.1 torch>=1.7.0 torchvision
-#pip3 uninstall dataclasses -y
-# todo add this to machine learning env...
 
 # initialize launch file
 dt-launchfile-init
