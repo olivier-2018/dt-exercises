@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source /environment.sh
+source /code/catkin_ws/devel/setup.bash --extend
 source /code/submission_ws/devel/setup.bash --extend
 source /code/solution/devel/setup.bash --extend
 

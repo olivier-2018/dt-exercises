@@ -1,9 +1,9 @@
-challenge: mooc-viscontrol
+challenge: mooc-objdet
 
-title: "MOOC - Visual Lane Following"
+title: "MOOC - Object Detection"
 tags: [visible, ml-validation, aido, aido-embodied, LF, v4, simulation, protocol-normal, mooc]
 description: |
-  This is the challenge to test the Visual Lane Following of the MOOC's robot vision exercise.
+  This is the challenge is part of the the MOOC's object detection exercise.
 
   For more information about the "Self-Driving Cars with Duckietown" MOOC, visit [duckietown.org].
 
