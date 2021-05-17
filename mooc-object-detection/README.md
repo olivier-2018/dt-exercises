@@ -24,10 +24,12 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 - Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser. The login password is `quackquack`. Make sure you do not have other Jupyter notebooks already open.
 
-- Go to the first folder (`01-Pinhole-Camera`), open the notebook file, and follow through.
+- Go to the first folder (`01-CNN`), open the notebook file, and follow through.
 
-- You will have to execute the activities in order, from `/01-Pinhole-Camera` to `/04-Image-Filtering`. Skipping activities might result in errors.
+- You will have to execute the activities in order, from `/01-CNN` to `/02-Object-Detection`. There will also be some parts where you will have to go and exercute Google Colab notebooks (so that you can have access to a GPU). We will provide these instructions where necessary. 
+
+It is possible to run things on your local machine if you have a GPU (or even if you don't), but we are not providing instructions for this workflow to keep things simple and streamlined. 
 
 ## Submit the homework
 
-- After completing the activities, you can proceed to `/05-Visual-Servoing` and follow the instructions to submit your assignment.
+- The instructions to submit the homework are at the end of the `/02-Object-Detection` notebook. Please follow them to submit your assignment.
