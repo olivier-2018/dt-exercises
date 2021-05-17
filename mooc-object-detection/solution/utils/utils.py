@@ -44,6 +44,7 @@ def launch_env():
             domain_rand=False,
             max_steps=math.inf,
         )
+        # TODO probably `yield` the env here!
     return env
 
 import cv2
