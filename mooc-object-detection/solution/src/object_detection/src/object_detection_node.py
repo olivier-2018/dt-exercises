@@ -93,16 +93,18 @@ class ObjectDetectionNode(DTROS):
         
         msg = BoolStamped()
         msg.header = image_msg.header
-        msg.data = self.det2bool(bboxes[0], classes[0]) # [0] because our batch size given to the wrapper is 1
+        msg.data = self.det2bool(bboxes, classes, scores) # [0] because our batch size given to the wrapper is 1
         
         self.pub_obj_dets.publish(msg)
     
-    def det2bool(self, bboxes, classes):
+    def det2bool(self, bboxes, classes, scores):
         # TODO remove these debugging prints
+        print("Inside det2bool")
         print(bboxes)
         print(classes)
+        print(scores)
         
-        # This is a dummy solution, remove this next line
+        # TODO This is a dummy solution, remove this next line
         return len(bboxes) > 1
     
         
