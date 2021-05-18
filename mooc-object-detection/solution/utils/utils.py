@@ -6,6 +6,14 @@ import random
 import math
 import os
 
+
+@contextlib.contextmanager
+def directory(name):
+    ret = os.getcwd()
+    os.chdir(name)
+    yield None
+    os.chdir(ret)
+
 @contextlib.contextmanager
 def makedirs(name):
     try:
@@ -19,32 +27,14 @@ def seed(seed):
     np.random.seed(seed)
     random.seed(seed)
 
-def launch_env():
-    possible_maps = [
-        "4way",
-        "4way_bordered",
-        "ETH_intersection_map",
-        "ETH_large_loop",
-        "ETH_small_loop_1",
-        "ETHZ_loop",
-        "loop_pedestrians",
-        "Montreal_loop",
-        "small_loop",
-        "udem1",
-        "udem1_empty",
-        "TTIC_loop",
-        "TTIC_ripltown"
-    ]
-
-    for map in possible_maps:
-        import gym_duckietown
-        from gym_duckietown.envs import DuckietownEnv
-        env = DuckietownEnv(
-            map_name=map,
-            domain_rand=False,
-            max_steps=math.inf,
-        )
-        # TODO probably `yield` the env here!
+def launch_env(map):
+    import gym_duckietown
+    from gym_duckietown.envs import DuckietownEnv
+    env = DuckietownEnv(
+        map_name=map,
+        domain_rand=False,
+        max_steps=math.inf,
+    )
     return env
 
 import cv2
@@ -59,26 +49,9 @@ def _mod_mask(mask):
     mask = cv2.applyColorMap(temp, cv2.COLORMAP_RAINBOW)
     return mask
 
-
-def display_seg_mask(seg_img, masked):
-    dsize = seg_img.shape[0]*3, seg_img.shape[1]*3
-
-    seg_img = cv2.resize(seg_img, dsize)
-    masked = cv2.resize(_mod_mask(masked), dsize)
-
+def display_img_seg_mask(real_img, seg_img):
     all = np.concatenate(
-        ( seg_img, masked),
-        axis=1
-    )
-
-    cv2.imshow("image", all)
-    cv2.waitKey(0)
-
-def display_img_seg_mask(real_img, seg_img, masked):
-    masked = _mod_mask(masked)
-
-    all = np.concatenate(
-        (cv2.cvtColor(real_img, cv2.COLOR_RGB2BGR), seg_img, masked),
+        (cv2.cvtColor(real_img, cv2.COLOR_RGB2BGR), seg_img),
         axis=1
     )
 
