@@ -3,6 +3,7 @@ import os
 
 
 def run(input, exception_on_failure=False):
+    print(input)
     try:
         import subprocess
         program_output = subprocess.check_output(f"{input}", shell=True, universal_newlines=True,
@@ -12,6 +13,7 @@ def run(input, exception_on_failure=False):
             print(e.output)
             raise e
         program_output = e.output
+    print(program_output)
     return program_output.strip()
 
 class Wrapper():
@@ -38,11 +40,12 @@ class Wrapper():
 
         if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO and not file_already_existed:
             # https://github.com/duckietown/tensorrtx/tree/dt-yolov5/yolov5
-            run("git clone https://github.com/duckietown/tensorrtx.git -d dt-yolov5")
-            run(f"mv {weight_file_path}.wts tensorrtx/yolov5.wts")
-            run(f"cd tensorrtx && ./do_convert.sh", exception_on_failure=True)
+            run("git clone https://github.com/duckietown/tensorrtx.git -b dt-obj-det")
+            run(f"cp {weight_file_path}.wts ./tensorrtx/yolov5.wts")
+            run(f"cd tensorrtx && ls && chmod 777 ./do_convert.sh && ./do_convert.sh", exception_on_failure=True)
             run(f"mv tensorrtx/build/yolov5.engine {weight_file_path}.engine")
             run(f"mv tensorrtx/build/libmyplugins.so {weight_file_path}.so")
+            run("rm -rf tensorrtx")
 
         if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
             self.model = TRTModel(weight_file_path)
