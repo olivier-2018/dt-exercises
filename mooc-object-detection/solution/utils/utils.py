@@ -19,14 +19,32 @@ def seed(seed):
     np.random.seed(seed)
     random.seed(seed)
 
-def launch_env(map_name="udem_spooky"):
-    from gym_duckietown.envs import DuckietownEnv
-    env = DuckietownEnv(
-        domain_rand=False,
-        max_steps=math.inf,
-        randomize_maps_on_reset=False,
-        map_name=map_name
-    )
+def launch_env():
+    possible_maps = [
+        "4way",
+        "4way_bordered",
+        "ETH_intersection_map",
+        "ETH_large_loop",
+        "ETH_small_loop_1",
+        "ETHZ_loop",
+        "loop_pedestrians",
+        "Montreal_loop",
+        "small_loop",
+        "udem1",
+        "udem1_empty",
+        "TTIC_loop",
+        "TTIC_ripltown"
+    ]
+
+    for map in possible_maps:
+        import gym_duckietown
+        from gym_duckietown.envs import DuckietownEnv
+        env = DuckietownEnv(
+            map_name=map,
+            domain_rand=False,
+            max_steps=math.inf,
+        )
+        # TODO probably `yield` the env here!
     return env
 
 import cv2
