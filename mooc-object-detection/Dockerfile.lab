@@ -5,7 +5,10 @@ RUN /usr/bin/python3 -m pip install --upgrade pip
 RUN pip3 install -U \
     aido-protocols-daffy \
     duckietown-gym-daffy \
-    duckietown-world-daffy
+    duckietown-world-daffy \
+    tqdm
+
+RUN apt update && apt install unzip
 
 #COPY requirements.txt requirements.txt
 #RUN pip3 install -U -r requirements.txt

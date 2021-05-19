@@ -1,10 +1,10 @@
-# Instructions
+# Activity and Exercise Instructions
 
 Follow these instructions to run these activities.
 
 The final exercise counts towards grading and must be submitted for evaluation if you are pursuing the MOOC verified track.
 
-## Make sure your system is up to date
+## Phase 0: System update
 
 - 💻 Always make sure your Duckietown Shell is updated to the latest version. See [installation instructions](https://github.com/duckietown/duckietown-shell)
 
@@ -16,20 +16,49 @@ The final exercise counts towards grading and must be submitted for evaluation i
 
 - 🚙 Reboot your Duckiebot.
 
-## Execute the activities
 
-- Clone this repository.
+## Phase 1: Notebooks walkthrough
 
-- Build the workspace: `dts exercises build`.
+ - Build the workspace with:
 
-- Navigate to the folder and start the documentation with `dts exercises lab`. It will open a page in your browser. The login password is `quackquack`. Make sure you do not have other Jupyter notebooks already open.
+  💻$ `dts exercises build`
+  
+ - Run the notebooks **with the `--vnc` flag**
 
-- Go to the first folder (`01-CNN`), open the notebook file, and follow through.
+  💻$ `dts exercises lab --vnc`
+  
+This will run a [Jupyter Lab][lab] and open a browser window. Enter the password `quackquack`.
 
-- You will have to execute the activities in order, from `/01-CNN` to `/02-Object-Detection`. There will also be some parts where you will have to go and exercute Google Colab notebooks (so that you can have access to a GPU). We will provide these instructions where necessary. 
+[lab]: https://jupyterlab.readthedocs.io/en/stable/
 
-It is possible to run things on your local machine if you have a GPU (or even if you don't), but we are not providing instructions for this workflow to keep things simple and streamlined. 
+Click through to `01-CNN` and then click on [`cnn.ipynb`](localhost:8888/lab/tree/01-CNN/cnn.ipynb). Once you have completed that notebook, move on to the next. Make sure that you do go through them in order (especially `02`-`04`).
 
-## Submit the homework
+Since we are working with neural networks now, some of these exercises require you to train neural network models. We will use [Google Colaboratory](https://colab.research.google.com/) for this. As a result, having a Google account is a prerequisite. 
 
-- The instructions to submit the homework are at the end of the `/02-Object-Detection` notebook. Please follow them to submit your assignment.
+
+
+## Phase 2: Evaluate and refine your model and solution
+
+You can finetune your solution and see how it behaves in the simulator using:
+
+    💻$ `dts exercises test --sim` 
+
+Similar to the last exercises, you can open up the vnc browser and look at the image stream in `rqt_image_view` to gauge the performance of your model. 
+
+TODO: is there a special image that is published that shows the detections?
+
+You can similarly run your agent on your Duckiebot (if you have a Jetson Nano) using:
+
+    💻$ `dts exercises test -b ![DUCKIEBOT_NAME]`
+
+
+
+## Phase 3: Submit the homework
+
+Once you are satisfied with your agent's performance, you can submit it. It's a good idea to evaluate it locally with the exact challenge conditions first. This can be done with:
+
+    💻$ `dts challenges evaluate`
+    
+Then finally submit with 
+
+    💻$ `dts challenges submit`

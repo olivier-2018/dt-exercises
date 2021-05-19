@@ -1,13 +1,17 @@
+#!/usr/bin/env python3
+
 import os
 from functools import reduce
 
 import cv2
 import numpy as np
+## Important - don't remove these imports even though they seem unneeded
 import pyglet
 from pyglet.window import key
 
 from agent import PurePursuitPolicy
 from utils import launch_env, seed, makedirs, display_img_seg_mask, _mod_mask
+
 
 
 class SkipException(Exception):
@@ -35,6 +39,7 @@ mapping = {
 
 all_image_names = []
 npz_index = 0
+
 def save_npz(img, boxes, classes):
     global npz_index
 
