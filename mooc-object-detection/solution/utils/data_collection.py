@@ -16,7 +16,7 @@ from utils import launch_env, seed, makedirs, display_img_seg_mask, _mod_mask
 
 class SkipException(Exception):
     pass
-
+DATASET_DIR="../dataset"
 IMAGE_SIZE=416
 
 mapping = {
@@ -43,10 +43,10 @@ npz_index = 0
 def save_npz(img, boxes, classes):
     global npz_index
 
-    with makedirs("./data_collection/dataset/images"):
+    with makedirs(f"{DATASET_DIR}/images"):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f"./data_collection/dataset/images/{npz_index}.jpg", img)
-    with makedirs("./data_collection/dataset/labels"):
+        cv2.imwrite(f"{DATASET_DIR}/images/{npz_index}.jpg", img)
+    with makedirs(f"{DATASET_DIR}/labels"):
 
         #make boxes to xywh format:
         def xminyminxmaxymax2xywfnormalized(box, image_size):
@@ -61,7 +61,7 @@ def save_npz(img, boxes, classes):
 
         boxes = np.array([xminyminxmaxymax2xywfnormalized(box, IMAGE_SIZE) for box in boxes])
 
-        with open(f"./data_collection/dataset/labels/{npz_index}.txt", "w") as f:
+        with open(f"{DATASET_DIR}/labels/{npz_index}.txt", "w") as f:
             for i in range(len(boxes)):
                 f.write(f"{classes[i]} "+" ".join(map(str,boxes[i]))+"\n")
 
@@ -195,15 +195,15 @@ train_txt, val_txt = train_txt[:SPLIT_PERCENTAGE], train_txt[SPLIT_PERCENTAGE:]
 def mv(img_name, to_train):
     dest = "train" if to_train else "val"
 
-    with makedirs(f"./data_collection/dataset/{dest}/images"):
-        run(f"mv ./data_collection/dataset/images/{img_name}.jpg ./data_collection/dataset/{dest}/images/{img_name}.jpg")
-    with makedirs(f"./data_collection/dataset/{dest}/labels"):
-        run(f"mv ./data_collection/dataset/labels/{img_name}.txt ./data_collection/dataset/{dest}/labels/{img_name}.txt")
+    with makedirs(f"{DATASET_DIR}/{dest}/images"):
+        run(f"mv {DATASET_DIR}/images/{img_name}.jpg {DATASET_DIR}/{dest}/images/{img_name}.jpg")
+    with makedirs(f"{DATASET_DIR}/{dest}/labels"):
+        run(f"mv {DATASET_DIR}/labels/{img_name}.txt {DATASET_DIR}/{dest}/labels/{img_name}.txt")
 
 for img in train_txt:
     mv(img, True)
 for img in val_txt:
     mv(img, False)
 
-run("rm -rf ./data_collection/dataset/images ./data_collection/dataset/labels")
+run(f"rm -rf {DATASET_DIR}/images {DATASET_DIR}/labels")
 
