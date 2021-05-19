@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import pyglet
+from pyglet.window import key
 
 from agent import PurePursuitPolicy
 from utils import launch_env, seed
