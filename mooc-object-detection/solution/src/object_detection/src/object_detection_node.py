@@ -57,6 +57,7 @@ class ObjectDetectionNode(DTROS):
         rospack = rospkg.RosPack()
         model_file_absolute = rospack.get_path('object_detection') + model_file
         self.model_wrapper = Wrapper(model_file_absolute)
+        self.frame_id = 0
         self.initialized = True
         self.log("Initialized!")
     
@@ -69,9 +70,11 @@ class ObjectDetectionNode(DTROS):
         if not self.initialized:
             return
 
-        # TODO to get better hz, you might want to only call your wrapper's predict function only once ever 4-5 images?
-        # This way, you're not calling the model again for two practically identical images. Experiment to find a good number of skipped
-        # images.
+        if self.frame_id != 0:
+            return
+        self.frame_id += 1
+        from studentfile import NUMBER_FRAMES_SKIPPED
+        self.frame_id = self.frame_id % (1 + NUMBER_FRAMES_SKIPPED())
 
         # Decode from compressed image with OpenCV
         try:
@@ -88,45 +91,33 @@ class ObjectDetectionNode(DTROS):
                 image
             )
         
-        image = cv2.resize(image, (224,224))
+        image = cv2.resize(image, (416,416))
         bboxes, classes, scores = self.model_wrapper.predict(image)
         
         msg = BoolStamped()
         msg.header = image_msg.header
-        msg.data = self.det2bool(bboxes, classes, scores) # [0] because our batch size given to the wrapper is 1
+        msg.data = self.det2bool(bboxes, classes, scores)
         
         self.pub_obj_dets.publish(msg)
     
     def det2bool(self, bboxes, classes, scores):
-        # TODO remove these debugging prints
-        print("Inside det2bool")
-        print(bboxes)
-        print(classes)
-        print(scores)
-        
-        # TODO This is a dummy solution, remove this next line
-        return len(bboxes) > 1
-    
-        
-        # TODO filter the predictions: the environment here is a bit different versus the data collection environment, and your model might output a bit
-        # of noise. For example, you might see a bunch of predictions with x1=223.4 and x2=224, which makes
-        # no sense. You should remove these. 
-        
-        # TODO also filter detections which are outside of the road, or too far away from the bot. Only return True when there's a pedestrian (aka a duckie)
-        # in front of the bot, which you know the bot will have to avoid. A good heuristic would be "if centroid of bounding box is in the center of the image, 
-        # assume duckie is in the road" and "if bouding box's area is more than X pixels, assume duckie is close to us"
-        
-        
-        obj_det_list = []
-        for i in range(len(bboxes)):
-            x1, y1, x2, y2 = bboxes[i]
-            label = classes[i]
-            
-            # TODO if label isn't a duckie, skip
-            # TODO if detection is a pedestrian in front of us:
-            #   return True
+        print(f"Before filtering: {len(bboxes)} detections")
 
+        from studentfile import filter_by_classes
+        from studentfile import filter_by_bboxes
+        from studentfile import filter_by_scores
 
+        box_ids = np.array(list(map(filter_by_bboxes, bboxes))).nonzero()
+        cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()
+        sco_ids = np.array(list(map(filter_by_scores, scores))).nonzero()
+
+        box_cla_ids = set(box_ids).intersection(set(cla_ids))
+        box_cla_sco_ids = set(sco_ids).intersection(box_cla_ids)
+
+        print(f"After filtering: {len(box_cla_sco_ids)} detections")
+
+        if len(box_cla_sco_ids) > 0:
+            return True
 
 if __name__ == "__main__":
     # Initialize the node

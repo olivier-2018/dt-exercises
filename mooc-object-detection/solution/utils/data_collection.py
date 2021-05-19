@@ -1,64 +1,204 @@
-#!/usr/bin/env python3
+import os
+from functools import reduce
 
+import cv2
 import numpy as np
 import pyglet
 from pyglet.window import key
 
 from agent import PurePursuitPolicy
-from utils import launch_env, seed
-from utils import launch_env, seed, makedirs, display_seg_mask, display_img_seg_mask
-import cv2
+from utils import launch_env, seed, makedirs, display_img_seg_mask, _mod_mask
 
-DATASET_DIR= "../dataset"
 
+class SkipException(Exception):
+    pass
+
+IMAGE_SIZE=416
+
+mapping = {
+    "house": "3deb34",
+    "bus": "ebd334",
+    "truck": "961fad",
+    "duckie": "cfa923",
+    "cone": "ffa600",
+    "floor": "000000",
+    "grass": "000000",
+    "barrier": "000099"
+}
+
+mapping = {
+    key:
+        [int(h[i:i+2], 16) for i in (0,2,4)]
+    for key, h in mapping.items()
+}
+
+
+all_image_names = []
 npz_index = 0
-def save_img(img, boxes, classes):
+def save_npz(img, boxes, classes):
     global npz_index
 
-    with makedirs(f"{DATASET_DIR}/images"):
+    with makedirs("./data_collection/dataset/images"):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f"{DATASET_DIR}/images/{npz_index}.jpg", img)
-    with makedirs(f"{DATASET_DIR}/labels"):
-        with open(f"{DATASET_DIR}/labels/{npz_index}.txt", "w") as f:
+        cv2.imwrite(f"./data_collection/dataset/images/{npz_index}.jpg", img)
+    with makedirs("./data_collection/dataset/labels"):
+
+        #make boxes to xywh format:
+        def xminyminxmaxymax2xywfnormalized(box, image_size):
+            xmin, ymin, xmax, ymax = np.array(box, dtype=np.float64)
+            center_x = (xmin+xmax)/2
+            center_y = (ymin+ymax)/2
+            width = xmax-xmin
+            height = ymax-ymin
+
+            normalized = np.array([center_x, center_y, width, height])/image_size
+            return np.round(normalized, 5)
+
+        boxes = np.array([xminyminxmaxymax2xywfnormalized(box, IMAGE_SIZE) for box in boxes])
+
+        with open(f"./data_collection/dataset/labels/{npz_index}.txt", "w") as f:
             for i in range(len(boxes)):
-                f.write(f"{classes[i]} " + " ".join(map(str, boxes[i])) + "\n")
+                f.write(f"{classes[i]} "+" ".join(map(str,boxes[i]))+"\n")
+
+    all_image_names.append(f"{npz_index}")
     npz_index += 1
 
-def clean_segmented_image(seg_img):
-    # TODO
-    # Tip: use the display function found in util.py to ensure that your cleaning produces clean masks
-    # (ie masks akin to the ones from PennFudanPed) before extracting the bounding boxes
-    pass
-    # return boxes, classes
+def find_all_bboxes(mask):
+    gray = mask.astype("uint8")
+    gray[mask == True] = 255
+    gray[mask == False] = 0
+
+    contours, hierarchy = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
+
+    boxes = []
+    for index, cnt in enumerate(contours):
+        if hierarchy[0,index,3] != -1:
+            continue
+
+        x, y, w, h = cv2.boundingRect(cnt)
+        boxes.append([x,y,w+x,h+y])
+
+    boxes = np.array(boxes)
+
+    return boxes
+
+def clean_mask(segmented_img):
+    colors = map(np.array, [
+        mapping["duckie"],    # duckie
+        mapping["cone"],    # cone
+        mapping["truck"],    # truck
+        mapping["bus"],     # bus
+    ])
+
+    all_boxes = []
+    all_classes = []
+
+    for i, color in enumerate(colors):
+        mask = np.all(segmented_img == color, axis=-1)
+
+       # x = mask.copy()
+       # x[x == True] = 1
+       # x[x == False] = 0
+       # x = _mod_mask(x)
+
+        boxes = find_all_bboxes(mask)
+        all_boxes.extend(list(boxes))
+
+        classes = np.array([i]*boxes.shape[0])
+        all_classes.extend(list(classes))
+
+    if len(all_boxes) == 0:
+        raise SkipException("No boxes found in image. Skipping.")
+
+    return all_boxes, all_classes
 
 seed(123)
-environment = launch_env()  # TODO go see this function in utils: there is a list of maps. You probably should
-# TODO change this to a for loop, to iterate over all possible maps, to get a more diverse dataset
-
-policy = PurePursuitPolicy(environment)
-
-MAX_STEPS = 500 # TODO change this, this controls the maximum number of steps your agent takes
-
+MAX_STEPS = 1000
+nb_of_steps = 0
+possible_maps = [
+    "loop_pedestrians",
+    "udem1",
+    "loop_dyn_duckiebots",
+    "zigzag_dists"
+]
+env_id = 0
 while True:
-    obs = environment.reset()   # TODO you might want to move launch_env here, and specify a new map at each new loop?
-    environment.render(segment=True)
-    rewards = []
+    if env_id >= len(possible_maps):
+        env_id = env_id % len(possible_maps)
+    env = launch_env(possible_maps[env_id])
+    policy = PurePursuitPolicy(env)
+    obs = env.reset()
 
-    nb_of_steps = 0
+    inner_steps = 0
+    if nb_of_steps >= MAX_STEPS:
+        break
 
     while True:
+        if nb_of_steps >= MAX_STEPS or inner_steps > 100:
+            break
+
         action = policy.predict(np.array(obs))
 
-        obs, rew, done, misc = environment.step(action) # Gives non-segmented obs as numpy array
-        segmented_obs = environment.render_obs(True)  # Gives segmented obs as numpy array
+        obs, rew, done, misc = env.step(action)
+        seg = env.render_obs(True)
 
-        rewards.append(rew)
-        environment.render(segment=int(nb_of_steps / 50) % 2 == 0)
+        obs = cv2.resize(obs, (IMAGE_SIZE, IMAGE_SIZE))
+        seg = cv2.resize(seg, (IMAGE_SIZE, IMAGE_SIZE))
 
-        # TODO boxes, classes = clean_segmented_image(segmented_obs)
-        # TODO save_img(obs, boxes, classes)
+        try:
+            boxes, classes = clean_mask(seg)
+        except SkipException as e:
+            print(e)
+            continue
+
+        for box in boxes:
+            pt1 = (box[0], box[1])
+            pt2 = (box[2], box[3])
+            cv2.rectangle(obs, pt1, pt2, (255,0,0), 2)
+        #display_img_seg_mask(obs, seg)
+
+        save_npz(obs, boxes, classes)
+
 
         nb_of_steps += 1
+        inner_steps += 1
 
-        if done or nb_of_steps > MAX_STEPS:
-            break
+        if done or inner_steps % 10 == 0:
+            env.reset()
+    if nb_of_steps >= MAX_STEPS:
+        break
+
+import subprocess
+
+def run(input, exception_on_failure=False):
+    try:
+        program_output = subprocess.check_output(f"{input}", shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
+    except Exception as e:
+        if exception_on_failure:
+            raise e
+        program_output = e.output
+
+    return program_output
+
+train_txt = np.array(all_image_names)
+np.random.shuffle(train_txt)
+nb_things = len(train_txt)
+SPLIT_PERCENTAGE = 0.8
+SPLIT_PERCENTAGE = int(SPLIT_PERCENTAGE * nb_things)
+train_txt, val_txt = train_txt[:SPLIT_PERCENTAGE], train_txt[SPLIT_PERCENTAGE:]
+
+def mv(img_name, to_train):
+    dest = "train" if to_train else "val"
+
+    with makedirs(f"./data_collection/dataset/{dest}/images"):
+        run(f"mv ./data_collection/dataset/images/{img_name}.jpg ./data_collection/dataset/{dest}/images/{img_name}.jpg")
+    with makedirs(f"./data_collection/dataset/{dest}/labels"):
+        run(f"mv ./data_collection/dataset/labels/{img_name}.txt ./data_collection/dataset/{dest}/labels/{img_name}.txt")
+
+for img in train_txt:
+    mv(img, True)
+for img in val_txt:
+    mv(img, False)
+
+run("rm -rf ./data_collection/dataset/images ./data_collection/dataset/labels")
+
