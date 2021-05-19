@@ -1,11 +1,11 @@
 #challenge: # defaults to all compatible challenges
 #  - aido2-LF-sim-testing
 
-challenge: [mooc-viscontrol]
+challenge: [mooc-objdet]
 
 protocol: aido2_db18_agent-z2
-user-label: "template-ros"
+user-label: "objdet exercise"
 user-payload: {}
 description: |
-    This is the MOOC Robot Vision exercise
+    This is the MOOC Object Detection exercise
 # TODO
