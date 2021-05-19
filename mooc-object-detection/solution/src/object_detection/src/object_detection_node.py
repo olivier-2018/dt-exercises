@@ -10,6 +10,7 @@ from image_processing.anti_instagram import AntiInstagram
 import cv2
 from object_detection.model import Wrapper
 from cv_bridge import CvBridge
+import integration
 
 class ObjectDetectionNode(DTROS):
 
