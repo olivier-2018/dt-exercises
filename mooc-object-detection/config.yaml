@@ -30,6 +30,10 @@ agent_run_cmd: "run_pedestrian.sh" # the script in "launchers" to run the agent 
 ros: true
 challenge: mooc-objdet
 
+files:
+  - notebook:
+      target_dir: "solution/src/object_detection/src"
+      input_file: "solution/04-Integration/integration.ipynb"
 
 #notebooks:
 #  - notebook:

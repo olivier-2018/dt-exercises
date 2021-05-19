@@ -73,7 +73,7 @@ class ObjectDetectionNode(DTROS):
         if self.frame_id != 0:
             return
         self.frame_id += 1
-        from studentfile import NUMBER_FRAMES_SKIPPED
+        from integration import NUMBER_FRAMES_SKIPPED
         self.frame_id = self.frame_id % (1 + NUMBER_FRAMES_SKIPPED())
 
         # Decode from compressed image with OpenCV
@@ -103,9 +103,9 @@ class ObjectDetectionNode(DTROS):
     def det2bool(self, bboxes, classes, scores):
         print(f"Before filtering: {len(bboxes)} detections")
 
-        from studentfile import filter_by_classes
-        from studentfile import filter_by_bboxes
-        from studentfile import filter_by_scores
+        from integration import filter_by_classes
+        from integration import filter_by_bboxes
+        from integration import filter_by_scores
 
         box_ids = np.array(list(map(filter_by_bboxes, bboxes))).nonzero()
         cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()
