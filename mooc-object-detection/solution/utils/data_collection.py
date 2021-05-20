@@ -12,29 +12,12 @@ from pyglet.window import key
 from agent import PurePursuitPolicy
 from utils import launch_env, seed, makedirs, display_img_seg_mask, _mod_mask
 
-
+from setup import find_all_boxes_and_classes
 
 class SkipException(Exception):
     pass
 
 IMAGE_SIZE=416
-
-mapping = {
-    "house": "3deb34",
-    "bus": "ebd334",
-    "truck": "961fad",
-    "duckie": "cfa923",
-    "cone": "ffa600",
-    "floor": "000000",
-    "grass": "000000",
-    "barrier": "000099"
-}
-
-mapping = {
-    key:
-        [int(h[i:i+2], 16) for i in (0,2,4)]
-    for key, h in mapping.items()
-}
 
 
 all_image_names = []
@@ -68,58 +51,12 @@ def save_npz(img, boxes, classes):
     all_image_names.append(f"{npz_index}")
     npz_index += 1
 
-def find_all_bboxes(mask):
-    gray = mask.astype("uint8")
-    gray[mask == True] = 255
-    gray[mask == False] = 0
-
-    contours, hierarchy = cv2.findContours(gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2:]
-
-    boxes = []
-    for index, cnt in enumerate(contours):
-        if hierarchy[0,index,3] != -1:
-            continue
-
-        x, y, w, h = cv2.boundingRect(cnt)
-        boxes.append([x,y,w+x,h+y])
-
-    boxes = np.array(boxes)
-
-    return boxes
-
-def clean_mask(segmented_img):
-    colors = map(np.array, [
-        mapping["duckie"],    # duckie
-        mapping["cone"],    # cone
-        mapping["truck"],    # truck
-        mapping["bus"],     # bus
-    ])
-
-    all_boxes = []
-    all_classes = []
-
-    for i, color in enumerate(colors):
-        mask = np.all(segmented_img == color, axis=-1)
-
-       # x = mask.copy()
-       # x[x == True] = 1
-       # x[x == False] = 0
-       # x = _mod_mask(x)
-
-        boxes = find_all_bboxes(mask)
-        all_boxes.extend(list(boxes))
-
-        classes = np.array([i]*boxes.shape[0])
-        all_classes.extend(list(classes))
-
-    if len(all_boxes) == 0:
-        raise SkipException("No boxes found in image. Skipping.")
-
-    return all_boxes, all_classes
-
+# some setup
 seed(123)
 MAX_STEPS = 1000
 nb_of_steps = 0
+
+# we interate over several maps to get more diverse data
 possible_maps = [
     "loop_pedestrians",
     "udem1",
@@ -146,12 +83,13 @@ while True:
 
         obs, rew, done, misc = env.step(action)
         seg = env.render_obs(True)
+        env.render(segment=int(nb_of_steps / 50) % 2 == 0)
 
         obs = cv2.resize(obs, (IMAGE_SIZE, IMAGE_SIZE))
         seg = cv2.resize(seg, (IMAGE_SIZE, IMAGE_SIZE))
 
         try:
-            boxes, classes = clean_mask(seg)
+            boxes, classes = find_all_boxes_and_classes(seg)
         except SkipException as e:
             print(e)
             continue

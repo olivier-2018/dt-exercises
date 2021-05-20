@@ -2,8 +2,7 @@ import math
 
 import numpy as np
 
-from gym_duckietown.simulator import AGENT_SAFETY_RAD
-
+AGENT_SAFETY_RAD = 0.162
 POSITION_THRESHOLD = 0.04
 REF_VELOCITY = 0.7
 FOLLOWING_DISTANCE = 0.24

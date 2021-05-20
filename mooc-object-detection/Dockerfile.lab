@@ -4,9 +4,11 @@ RUN /usr/bin/python3 -m pip install --upgrade pip
 
 RUN pip3 install -U \
     aido-protocols-daffy \
-    duckietown-gym-daffy \
     duckietown-world-daffy \
     tqdm
+
+
+RUN python -m pip install git+https://github.com/duckietown/gym-duckietown.git
 
 RUN apt update && apt install unzip
 
@@ -23,6 +25,8 @@ COPY assets/vnc/image/usr/bin/. /usr/bin/
 COPY assets/vnc/image/opt/ros/noetic/share/rviz/. /opt/ros/noetic/share/rviz/
 
 RUN rm /root/Desktop/intrinsic_calibration.desktop
+
+ENV PYTHONPATH="${PYTHONPATH}:/jupyter_ws/solution/utils"
 
 # note that this CMD normally gets overwritten
 CMD ["dt-launcher-jupyter"]
