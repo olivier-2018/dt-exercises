@@ -53,7 +53,7 @@ def save_npz(img, boxes, classes):
 
 # some setup
 seed(123)
-MAX_STEPS = 1000
+MAX_STEPS = 5000
 nb_of_steps = 0
 
 # we interate over several maps to get more diverse data
@@ -64,7 +64,12 @@ possible_maps = [
     "zigzag_dists"
 ]
 env_id = 0
+env = None
 while True:
+    if env is not None:
+        env.window.close()
+        env.close()
+
     if env_id >= len(possible_maps):
         env_id = env_id % len(possible_maps)
     env = launch_env(possible_maps[env_id])
@@ -108,7 +113,7 @@ while True:
         nb_of_steps += 1
         inner_steps += 1
 
-        if done or inner_steps % 10 == 0:
+        if done or inner_steps % 100 == 0:
             env.reset()
     if nb_of_steps >= MAX_STEPS:
         break
