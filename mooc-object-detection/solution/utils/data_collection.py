@@ -83,10 +83,12 @@ while True:
 
         obs, rew, done, misc = env.step(action)
         seg = env.render_obs(True)
-        env.render(segment=int(nb_of_steps / 50) % 2 == 0)
+
 
         obs = cv2.resize(obs, (IMAGE_SIZE, IMAGE_SIZE))
         seg = cv2.resize(seg, (IMAGE_SIZE, IMAGE_SIZE))
+
+        env.render(segment=True)
 
         try:
             boxes, classes = find_all_boxes_and_classes(seg)
