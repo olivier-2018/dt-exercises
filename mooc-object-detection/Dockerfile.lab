@@ -8,7 +8,7 @@ RUN pip3 install -U \
     tqdm
 
 
-RUN python -m pip install git+https://github.com/duckietown/gym-duckietown.git
+RUN python -m pip install git+https://github.com/duckietown/gym-duckietown.git@daffy-seg-fix
 
 RUN apt update && apt install unzip
 
