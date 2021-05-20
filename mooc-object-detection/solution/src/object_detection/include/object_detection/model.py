@@ -98,8 +98,10 @@ class TRTModel(Model):
     def __init__(self, weight_file_path):
         super().__init__()
         ctypes.CDLL(weight_file_path+".so")
-        from tensorrt_model import YoLov5TRT
+        from object_detection.tensorrt_model import YoLov5TRT
         self.model = YoLov5TRT(weight_file_path+".engine")
     def infer(self, image):
         # todo ensure this is in boxes, classes, scores format
         return self.model.infer_for_robot([image])
+
+
