@@ -10,7 +10,7 @@ from image_processing.anti_instagram import AntiInstagram
 import cv2
 from object_detection.model import Wrapper
 from cv_bridge import CvBridge
-import integration
+from integration import NUMBER_FRAMES_SKIPPED, filter_by_classes, filter_by_bboxes, filter_by_scores
 
 class ObjectDetectionNode(DTROS):
 
@@ -74,7 +74,6 @@ class ObjectDetectionNode(DTROS):
         if self.frame_id != 0:
             return
         self.frame_id += 1
-        from integration import NUMBER_FRAMES_SKIPPED
         self.frame_id = self.frame_id % (1 + NUMBER_FRAMES_SKIPPED())
 
         # Decode from compressed image with OpenCV
@@ -104,21 +103,23 @@ class ObjectDetectionNode(DTROS):
     def det2bool(self, bboxes, classes, scores):
         print(f"Before filtering: {len(bboxes)} detections")
 
-        from integration import filter_by_classes
-        from integration import filter_by_bboxes
-        from integration import filter_by_scores
-
         box_ids = np.array(list(map(filter_by_bboxes, bboxes))).nonzero()
         cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()
         sco_ids = np.array(list(map(filter_by_scores, scores))).nonzero()
 
-        box_cla_ids = set(box_ids).intersection(set(cla_ids))
-        box_cla_sco_ids = set(sco_ids).intersection(box_cla_ids)
+        print(box_ids)
+        print(cla_ids)
+        print(sco_ids)
+
+        box_cla_ids = np.intersect1d(box_ids, cla_ids)
+        box_cla_sco_ids = np.intersect1d(box_cla_ids, sco_ids)
 
         print(f"After filtering: {len(box_cla_sco_ids)} detections")
 
         if len(box_cla_sco_ids) > 0:
             return True
+        else:
+            return False
 
 if __name__ == "__main__":
     # Initialize the node

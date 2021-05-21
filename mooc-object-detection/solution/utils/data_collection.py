@@ -19,7 +19,9 @@ from setup import find_all_boxes_and_classes
 
 class SkipException(Exception):
     pass
-DATASET_DIR="/jupyter_ws/solution/dataset"
+
+# Need to change this dataset directory if not running inside docker container... TODO fix
+DATASET_DIR="/jupyter_ws/solution/duckietown_dataset"
 IMAGE_SIZE=416
 SPLIT_PERCENTAGE=0.8
 

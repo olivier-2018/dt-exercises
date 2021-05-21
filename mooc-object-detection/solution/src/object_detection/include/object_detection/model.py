@@ -20,6 +20,8 @@ class Wrapper():
     def __init__(self, _):
         dt_token = DT_TOKEN()#"dt1-3nT8KSoxVh4MdLnE1Bq2mTkhRpbR35G8mmbjExH5deTkpsN-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbffvW31zEoh35fcbiTrhMQoFvGEH9ztHXBc" # TODO you must add your token here!
         model_name = MODEL_NAME()#"yolov5" # TODO you must add your model's name here!
+        print("****************")
+        print(model_name)
 
         cache_path = "/code/solution/nn_models"
         from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
