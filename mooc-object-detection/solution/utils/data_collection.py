@@ -10,7 +10,8 @@ import pyglet
 from pyglet.window import key
 
 from agent import PurePursuitPolicy
-from utils import launch_env, seed, makedirs, display_img_seg_mask, _mod_mask
+from utils import launch_env, seed, makedirs, xminyminxmaxymax2xywfnormalized, run, \
+    train_test_split
 
 from setup import find_all_boxes_and_classes
 
@@ -18,8 +19,9 @@ from setup import find_all_boxes_and_classes
 
 class SkipException(Exception):
     pass
-DATASET_DIR="../dataset"
+DATASET_DIR="/jupyter_ws/solution/dataset"
 IMAGE_SIZE=416
+SPLIT_PERCENTAGE=0.8
 
 
 npz_index = 0
@@ -27,27 +29,12 @@ npz_index = 0
 def save_npz(img, boxes, classes):
     global npz_index
 
-    with makedirs(f"{DATASET_DIR}/images"):
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f"{DATASET_DIR}/images/{npz_index}.jpg", img)
-    with makedirs(f"{DATASET_DIR}/labels"):
-
-        #make boxes to xywh format:
-        def xminyminxmaxymax2xywfnormalized(box, image_size):
-            xmin, ymin, xmax, ymax = np.array(box, dtype=np.float64)
-            center_x = (xmin+xmax)/2
-            center_y = (ymin+ymax)/2
-            width = xmax-xmin
-            height = ymax-ymin
-
-            normalized = np.array([center_x, center_y, width, height])/image_size
-            return np.round(normalized, 5)
-
-        boxes = np.array([xminyminxmaxymax2xywfnormalized(box, IMAGE_SIZE) for box in boxes])
-
-        with open(f"{DATASET_DIR}/labels/{npz_index}.txt", "w") as f:
-            for i in range(len(boxes)):
-                f.write(f"{classes[i]} "+" ".join(map(str,boxes[i]))+"\n")
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    cv2.imwrite(f"{DATASET_DIR}/images/{npz_index}.jpg", img)
+    boxes = np.array([xminyminxmaxymax2xywfnormalized(box, IMAGE_SIZE) for box in boxes])
+    with open(f"{DATASET_DIR}/labels/{npz_index}.txt", "w") as f:
+        for i in range(len(boxes)):
+            f.write(f"{classes[i]} "+" ".join(map(str,boxes[i]))+"\n")
 
     npz_index += 1
 
@@ -105,11 +92,8 @@ while True:
             pt1 = (box[0], box[1])
             pt2 = (box[2], box[3])
             cv2.rectangle(obs, pt1, pt2, (255,0,0), 2)
-        #display_img_seg_mask(obs, seg)
 
         save_npz(obs, boxes, classes)
-
-
         nb_of_steps += 1
         inner_steps += 1
 
@@ -118,41 +102,8 @@ while True:
     if nb_of_steps >= MAX_STEPS:
         break
 
-import subprocess
 
-def run(input, exception_on_failure=False):
-    try:
-        program_output = subprocess.check_output(f"{input}", shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
-    except Exception as e:
-        if exception_on_failure:
-            raise e
-        program_output = e.output
+train_test_split(all_image_names, SPLIT_PERCENTAGE, DATASET_DIR)
 
-    return program_output
-
-all_image_names = list(filter(lambda file: file.endswith("jpg"), os.listdir("../dataset/images")))
-all_image_names = list(map(lambda file: file.replace(".jpg", ""), all_image_names))
-
-
-train_txt = np.array(all_image_names)
-np.random.shuffle(train_txt)
-nb_things = len(train_txt)
-SPLIT_PERCENTAGE = 0.8
-SPLIT_PERCENTAGE = int(SPLIT_PERCENTAGE * nb_things)
-train_txt, val_txt = train_txt[:SPLIT_PERCENTAGE], train_txt[SPLIT_PERCENTAGE:]
-
-def mv(img_name, to_train):
-    dest = "train" if to_train else "val"
-
-    with makedirs(f"{DATASET_DIR}/{dest}/images"):
-        run(f"mv {DATASET_DIR}/images/{img_name}.jpg {DATASET_DIR}/{dest}/images/{img_name}.jpg")
-    with makedirs(f"{DATASET_DIR}/{dest}/labels"):
-        run(f"mv {DATASET_DIR}/labels/{img_name}.txt {DATASET_DIR}/{dest}/labels/{img_name}.txt")
-
-for img in train_txt:
-    mv(img, True)
-for img in val_txt:
-    mv(img, False)
-
-run(f"rm -rf {DATASET_DIR}/images {DATASET_DIR}/labels")
+#run(f"rm -rf {DATASET_DIR}/images {DATASET_DIR}/labels")
 
