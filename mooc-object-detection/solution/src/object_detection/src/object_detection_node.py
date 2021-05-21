@@ -108,9 +108,11 @@ class ObjectDetectionNode(DTROS):
         from integration import filter_by_bboxes
         from integration import filter_by_scores
 
-        box_ids = np.array(list(map(filter_by_bboxes, bboxes))).nonzero()
-        cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()
-        sco_ids = np.array(list(map(filter_by_scores, scores))).nonzero()
+        box_ids = np.array(list(map(filter_by_bboxes, bboxes))).nonzero()[0]
+        cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()[0]
+        sco_ids = np.array(list(map(filter_by_scores, scores))).nonzero()[0]
+
+        print(box_ids)
 
         box_cla_ids = set(list(box_ids)).intersection(set(list(cla_ids)))
         box_cla_sco_ids = set(list(sco_ids)).intersection(box_cla_ids)
@@ -119,6 +121,8 @@ class ObjectDetectionNode(DTROS):
 
         if len(box_cla_sco_ids) > 0:
             return True
+        else:
+            return False
 
 if __name__ == "__main__":
     # Initialize the node
