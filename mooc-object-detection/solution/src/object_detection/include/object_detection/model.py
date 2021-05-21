@@ -102,9 +102,12 @@ class AMD64Model():
 
         import torch
         self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=f'{weight_file_path}.pt')
-        if torch.cuda.is_available():
-            self.model = self.model.cuda()
-        else:
+        try:
+            if torch.cuda.is_available():
+                self.model = self.model.cuda()
+            else:
+                self.model = self.model.cpu()
+        except Exception:
             self.model = self.model.cpu()
 
     def infer(self, image):
