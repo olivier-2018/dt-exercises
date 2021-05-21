@@ -1,6 +1,6 @@
 import ctypes
 import os
-
+from integration import MODEL_NAME, DT_TOKEN
 
 def run(input, exception_on_failure=False):
     print(input)
@@ -18,13 +18,13 @@ def run(input, exception_on_failure=False):
 
 class Wrapper():
     def __init__(self, _):
-        dt_token = "dt1-3nT8KSoxVh4MdLnE1Bq2mTkhRpbR35G8mmbjExH5deTkpsN-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbffvW31zEoh35fcbiTrhMQoFvGEH9ztHXBc" # TODO you must add your token here!
-        model_name = "yolov5" # TODO you must add your model's name here!
+        dt_token = DT_TOKEN()#"dt1-3nT8KSoxVh4MdLnE1Bq2mTkhRpbR35G8mmbjExH5deTkpsN-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbffvW31zEoh35fcbiTrhMQoFvGEH9ztHXBc" # TODO you must add your token here!
+        model_name = MODEL_NAME()#"yolov5" # TODO you must add your model's name here!
 
         cache_path = "/code/solution/nn_models"
         from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
         if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
-            cache_path = "/data/nn_models"
+            cache_path = "/data/config/nn_models"
         if not os.path.exists(cache_path):
             os.makedirs(cache_path)
 
@@ -38,7 +38,10 @@ class Wrapper():
 
         weight_file_path = f"{storage.cache_directory}/{model_name}"
 
+
+
         if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO and not file_already_existed:
+            print("\n\n\n\nCONVERTING TO ONNX. THIS WILL TAKE A LONG TIME...\n\n\n")
             # https://github.com/duckietown/tensorrtx/tree/dt-yolov5/yolov5
             run("git clone https://github.com/duckietown/tensorrtx.git -b dt-obj-det")
             run(f"cp {weight_file_path}.wts ./tensorrtx/yolov5.wts")
@@ -46,9 +49,32 @@ class Wrapper():
             run(f"mv tensorrtx/build/yolov5.engine {weight_file_path}.engine")
             run(f"mv tensorrtx/build/libmyplugins.so {weight_file_path}.so")
             run("rm -rf tensorrtx")
+            print("\n\n\n\n...DONE CONVERTING! NEXT TIME YOU RUN USING THE SAME MODEL, WE WON'T NEED TO DO THIS!\n\n\n")
 
         if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
+
             self.model = TRTModel(weight_file_path)
+            """
+            debugging...
+            import cv2
+            x = cv2.imread("/code/solution/src/object_detection/sample_duckie.jpg")
+            #x = cv2.cvtColor(x, cv2.COLOR_BGR2RGB)
+            print(self.model.infer(x))
+
+            import cv2
+            x = cv2.imread("/code/solution/src/object_detection/real_20.jpg")
+            #x = cv2.cvtColor(x, cv2.COLOR_BGR2RGB)
+            print(self.model.infer(x))
+
+            import cv2
+            x = cv2.imread("/code/solution/src/object_detection/562.jpg")
+            #x = cv2.cvtColor(x, cv2.COLOR_BGR2RGB)
+            print(self.model.infer(x))
+
+            
+            """
+
+
         else:
             self.model = AMD64Model(weight_file_path)
 
