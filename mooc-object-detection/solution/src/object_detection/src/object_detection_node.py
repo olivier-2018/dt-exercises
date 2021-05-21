@@ -108,7 +108,7 @@ class ObjectDetectionNode(DTROS):
         sco_ids = np.array(list(map(filter_by_scores, scores))).nonzero()
 
         box_cla_ids = set(list(box_ids)).intersection(set(list(cla_ids)))
-        box_cla_sco_ids = set(list(sco_ids)).intersection(box_cla_ids)))
+        box_cla_sco_ids = set(list(sco_ids)).intersection(set(list(box_cla_ids)))
 
         print(f"After filtering: {len(box_cla_sco_ids)} detections")
 
