@@ -15,6 +15,8 @@ from utils import launch_env, seed, makedirs, xminyminxmaxymax2xywfnormalized, r
 
 from setup import find_all_boxes_and_classes
 
+
+
 class SkipException(Exception):
     pass
 DATASET_DIR="/jupyter_ws/solution/dataset"
@@ -22,7 +24,6 @@ IMAGE_SIZE=416
 SPLIT_PERCENTAGE=0.8
 
 
-all_image_names = []
 npz_index = 0
 
 def save_npz(img, boxes, classes):
@@ -35,12 +36,11 @@ def save_npz(img, boxes, classes):
         for i in range(len(boxes)):
             f.write(f"{classes[i]} "+" ".join(map(str,boxes[i]))+"\n")
 
-    all_image_names.append(f"{npz_index}")
     npz_index += 1
 
 # some setup
 seed(123)
-MAX_STEPS = 5000
+MAX_STEPS = 10
 nb_of_steps = 0
 
 # we interate over several maps to get more diverse data
@@ -80,7 +80,7 @@ while True:
         obs = cv2.resize(obs, (IMAGE_SIZE, IMAGE_SIZE))
         seg = cv2.resize(seg, (IMAGE_SIZE, IMAGE_SIZE))
 
-        env.render(segment=True)
+        #env.render(segment=True)
 
         try:
             boxes, classes = find_all_boxes_and_classes(seg)
