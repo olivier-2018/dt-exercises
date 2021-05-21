@@ -10,7 +10,7 @@ from image_processing.anti_instagram import AntiInstagram
 import cv2
 from object_detection.model import Wrapper
 from cv_bridge import CvBridge
-import integration
+from integration import NUMBER_FRAMES_SKIPPED, filter_by_classes, filter_by_bboxes, filter_by_scores
 
 class ObjectDetectionNode(DTROS):
 
@@ -74,7 +74,6 @@ class ObjectDetectionNode(DTROS):
         if self.frame_id != 0:
             return
         self.frame_id += 1
-        from integration import NUMBER_FRAMES_SKIPPED
         self.frame_id = self.frame_id % (1 + NUMBER_FRAMES_SKIPPED())
 
         # Decode from compressed image with OpenCV
@@ -112,10 +111,9 @@ class ObjectDetectionNode(DTROS):
         cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()[0]
         sco_ids = np.array(list(map(filter_by_scores, scores))).nonzero()[0]
 
-        print(box_ids)
 
         box_cla_ids = set(list(box_ids)).intersection(set(list(cla_ids)))
-        box_cla_sco_ids = set(list(sco_ids)).intersection(box_cla_ids)
+        box_cla_sco_ids = set(list(sco_ids)).intersection(set(list(box_cla_ids)))
 
         print(f"After filtering: {len(box_cla_sco_ids)} detections")
 
