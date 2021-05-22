@@ -33,6 +33,10 @@ class ObjectDetectionNode(DTROS):
             dt_topic_type=TopicType.PERCEPTION
         )
 
+        self. pub_detections_image = rospy.Publisher(
+            "~object_detections_img", Image, queue_size=1, dt_topic_type=TopicType.DEBUG
+        )
+
         # Construct subscribers
         self.sub_image = rospy.Subscriber(
             "~image/compressed",
@@ -56,6 +60,7 @@ class ObjectDetectionNode(DTROS):
 
         model_file = rospy.get_param('~model_file','.')
         rospack = rospkg.RosPack()
+        self._debug = rospy.get_param("~debug", False)
         model_file_absolute = rospack.get_path('object_detection') + model_file
         self.model_wrapper = Wrapper(model_file_absolute)
         self.frame_id = 0
@@ -99,13 +104,26 @@ class ObjectDetectionNode(DTROS):
         msg.data = self.det2bool(bboxes, classes, scores)
         
         self.pub_obj_dets.publish(msg)
-    
-    def det2bool(self, bboxes, classes, scores):
-        print(f"Before filtering: {len(bboxes)} detections")
 
-        from integration import filter_by_classes
-        from integration import filter_by_bboxes
-        from integration import filter_by_scores
+        if self._debug:
+            colors = {0: (0, 255, 255), 1: (0, 165, 255), 2: (0, 250, 0), 3: (0, 0, 255)}
+            names = {0: "duckie", 1: "cone", 2: "truck", 3: "bus"}
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            for clas, box in zip(classes, bboxes):
+                pt1 = np.array([int(box[0]), int(box[1])])
+                pt2 = np.array([int(box[2]), int(box[3])])
+                pt1 = tuple(pt1)
+                pt2 = tuple(pt2)
+                color = colors[clas.item()]
+                name = names[clas.item()]
+                image = cv2.rectangle(image, pt1, pt2, color, 2)
+                text_location = (pt1[0], min(416, pt1[1]+20))
+                image = cv2.putText(image, name, text_location, font, 1, color, thickness=3)
+            obj_det_img = self.bridge.cv2_to_imgmsg(image, encoding="bgr8")
+            self.pub_detections_image.publish(obj_det_img)
+
+
+    def det2bool(self, bboxes, classes, scores):
 
         box_ids = np.array(list(map(filter_by_bboxes, bboxes))).nonzero()[0]
         cla_ids = np.array(list(map(filter_by_classes, classes))).nonzero()[0]
@@ -115,7 +133,6 @@ class ObjectDetectionNode(DTROS):
         box_cla_ids = set(list(box_ids)).intersection(set(list(cla_ids)))
         box_cla_sco_ids = set(list(sco_ids)).intersection(set(list(box_cla_ids)))
 
-        print(f"After filtering: {len(box_cla_sco_ids)} detections")
 
         if len(box_cla_sco_ids) > 0:
             return True

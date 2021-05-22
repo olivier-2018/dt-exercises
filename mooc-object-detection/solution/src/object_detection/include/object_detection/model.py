@@ -18,10 +18,9 @@ def run(input, exception_on_failure=False):
 
 class Wrapper():
     def __init__(self, _):
-        dt_token = DT_TOKEN()#"dt1-3nT8KSoxVh4MdLnE1Bq2mTkhRpbR35G8mmbjExH5deTkpsN-43dzqWFnWd8KBa1yev1g3UKnzVxZkkTbffvW31zEoh35fcbiTrhMQoFvGEH9ztHXBc" # TODO you must add your token here!
-        model_name = MODEL_NAME()#"yolov5" # TODO you must add your model's name here!
-        print("****************")
-        print(model_name)
+        dt_token = DT_TOKEN()
+        model_name = MODEL_NAME()
+
 
         cache_path = "/code/solution/nn_models"
         from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
@@ -82,12 +81,6 @@ class Wrapper():
 
 
     def predict(self, image):
-        # TODO Make your model predict here!
-
-        # TODO you should call self.model's infer function, and filter the predictions for the information you want.
-        # TODO For example, you probably only care about duckies, and maybe even only about duckies whose bounding boxes
-        # TODO are above a certain size, so as to stop only when a duckie is close to your duckiebot.
-
         return self.model.infer(image)
 
 class Model():
@@ -111,11 +104,10 @@ class AMD64Model():
             self.model = self.model.cpu()
 
     def infer(self, image):
+        # TODO size should be read from one place
         det = self.model(image, size=416)
 
         xyxy = det.xyxy[0]  # grabs det of first image (aka the only image we sent to the net)
-
-        print(xyxy)
 
         if xyxy.shape[0] > 0:
             conf = xyxy[:,-2]
