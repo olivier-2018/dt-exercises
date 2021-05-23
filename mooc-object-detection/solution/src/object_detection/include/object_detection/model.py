@@ -126,13 +126,10 @@ class TRTModel(Model):
     def infer(self, image):
         # todo ensure this is in boxes, classes, scores format
         results = self.model.infer_for_robot([image])
-        print(results)
         boxes = results[0][0]
         confs = results[0][1]
         classes = results[0][2]
-        print(boxes)
-        print(confs)
-        print(classes)
+
         if classes.shape[0] > 0:
             return boxes, classes, confs
         return [], [], []

@@ -1,16 +1,20 @@
 #!/bin/bash
-
 roscore &
 source /environment.sh
-source /opt/ros/noetic/setup.bash
 source /code/catkin_ws/devel/setup.bash --extend
 source /code/submission_ws/devel/setup.bash --extend
 source /code/solution/devel/setup.bash --extend
 
-roslaunch --wait agent agent_node.launch &
-roslaunch --wait car_interface all.launch veh:=$VEHICLE_NAME &
-sleep 5
-roslaunch visual_lane_following visual_lane_following_node.launch veh:=$VEHICLE_NAME AIDO_eval:="true"
+git clone https://github.com/Velythyl/dataclasses-spoof.git dataclasses && cd dataclasses &&  pip3 install . && cd ..
+pip3 install git+https://github.com/duckietown/lib-dt-mooc-2021
 
-#roslaunch encoder_pose encoder_pose_node.launch veh:=$VEHICLE_NAME AIDO_eval:="true"
-# rostopic pub /$VEHICLE_NAME/activity_name std_msgs/String "data: pid_exercise" --latch
+# initialize launch file
+dt-launchfile-init
+
+# launching app
+
+dt-exec roslaunch --wait agent agent_node.launch
+dt-exec roslaunch --wait car_interface all.launch veh:=$VEHICLE_NAME
+dt-exec roslaunch --wait duckietown_demos lane_following_pedestrians.launch
+sleep 5
+rostopic pub /$VEHICLE_NAME/fsm_node/mode duckietown_msgs/FSMState '{header: {}, state: "LANE_FOLLOWING"}'
