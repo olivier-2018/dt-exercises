@@ -1,6 +1,6 @@
 # Activity and Exercise Instructions
 
-Follow these instructions to run these activities.
+Follow these instructions to run these activities. At the end will be instructions to submit the exercise.
 
 The final exercise counts towards grading and must be submitted for evaluation if you are pursuing the MOOC verified track.
 
@@ -43,14 +43,19 @@ You can finetune your solution and see how it behaves in the simulator using:
 
     💻$ `dts exercises test --sim` 
 
-Similar to the last exercises, you can open up the vnc browser and look at the image stream in `rqt_image_view` to gauge the performance of your model. 
+NB: You may need to stop your `dts exercises lab --vnc` command and rerun without the `--vnc` since we will also use VNC
+for `dts exercises test`.
 
-TODO: is there a special image that is published that shows the detections?
+Similar to the last exercises, you can open up the noVNC browser and look at the image stream in `rqt_image_view` to 
+gauge the performance of your model. In noVNC, click on the `rqt_image_view` icon and in the dropdown menu select 
+`agent/object_detection_node/object_detections_img`. This image will show boxes with labels for any objects that
+are reported by your model. 
 
 You can similarly run your agent on your Duckiebot (if you have a Jetson Nano) using:
 
     💻$ `dts exercises test -b ![DUCKIEBOT_NAME]`
 
+You can repeat the procedure above for viewing the detections overlayed on your camera image.
 
 
 ## Phase 3: Submit the homework
@@ -62,3 +67,6 @@ Once you are satisfied with your agent's performance, you can submit it. It's a 
 Then finally submit with 
 
     💻$ `dts challenges submit`
+
+NB: it's a good idea to delete the `duckietown_dataset` that you created before submitted because it will make 
+your submission unnessarily large. 
