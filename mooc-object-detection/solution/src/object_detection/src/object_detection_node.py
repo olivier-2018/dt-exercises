@@ -22,7 +22,7 @@ class ObjectDetectionNode(DTROS):
             node_type=NodeType.PERCEPTION
         )
         self.initialized = False
-
+        self.log("Initializing!")
 
 
         # Construct publishers
@@ -59,10 +59,13 @@ class ObjectDetectionNode(DTROS):
         self.bridge = CvBridge()
 
         model_file = rospy.get_param('~model_file','.')
-        rospack = rospkg.RosPack()
+        self.veh = rospy.get_namespace().strip("/")
+        aido_eval = rospy.get_param(f"/{self.veh}/AIDO_eval", False)
+        self.log(f"AIDO EVAL VAR: {self.AIDO_eval}")
+        self.log("Starting model loading!")
         self._debug = rospy.get_param("~debug", False)
-        model_file_absolute = rospack.get_path('object_detection') + model_file
-        self.model_wrapper = Wrapper(model_file_absolute)
+        self.model_wrapper = Wrapper(aido_eval)
+        self.log("Finished model loading!")
         self.frame_id = 0
         self.initialized = True
         self.log("Initialized!")

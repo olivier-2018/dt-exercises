@@ -17,27 +17,28 @@ def run(input, exception_on_failure=False):
     return program_output.strip()
 
 class Wrapper():
-    def __init__(self, _):
-        dt_token = DT_TOKEN()
+    def __init__(self, aido_eval=False):
         model_name = MODEL_NAME()
 
+        if aido_eval:
+            weight_file_path = f"/code/solution/nn_models/{model_name}"
+        else:
+            dt_token = DT_TOKEN()
+            cache_path = "/code/solution/nn_models"
+            from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
+            if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
+                cache_path = "/data/config/nn_models"
+            if not os.path.exists(cache_path):
+                os.makedirs(cache_path)
 
-        cache_path = "/code/solution/nn_models"
-        from dt_device_utils import DeviceHardwareBrand, get_device_hardware_brand
-        if get_device_hardware_brand() == DeviceHardwareBrand.JETSON_NANO:
-            cache_path = "/data/config/nn_models"
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
+            from dt_mooc.cloud import Storage
+            storage = Storage(dt_token)
+            storage.cache_directory = cache_path    # todo this is dirty fix upstram in lib
 
-        from dt_mooc.cloud import Storage
-        storage = Storage(dt_token)
-        storage.cache_directory = cache_path    # todo this is dirty fix upstram in lib
+            file_already_existed = storage.is_hash_found_locally(model_name, cache_path)
 
-        file_already_existed = storage.is_hash_found_locally(model_name, cache_path)
-
-        storage.download_files(model_name, cache_path)
-
-        weight_file_path = f"{storage.cache_directory}/{model_name}"
+            storage.download_files(model_name, cache_path)
+            weight_file_path = f"{storage.cache_directory}/{model_name}"
 
 
 
