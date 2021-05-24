@@ -18,7 +18,7 @@ ct:
     condition:
       step: sim
       status: error
-name: mooc-objdet
+name: mooc-state-estimation
 tags:
 - visible
 - aido
@@ -105,6 +105,17 @@ steps:
 title: MOOC - State Estimation
 scoring:
   scores:
+  - name: driven_lanedir_consec_median
+    order: higher-is-better
+    short: Traveled distance
+    description: 'This is the median distance traveled, *along a lane*.
+
+      (That is, going in circles will not make this metric increase.)
+
+      This is discretized to tiles.
+
+      '
+    discretization: 0.62
   - name: survival_time_median
     order: higher-is-better
     short: Survival time
@@ -115,19 +126,23 @@ scoring:
       or it crashes with an obstacle or pedestrian.
 
       '
-    discretization: 0.1
-  - name: driven_lanedir_consec_median
-    order: higher-is-better
-    short: Traveled distance
-    description: 'This is the median distance traveled, *along a lane*.
-
-      (That is, going in circles will not make this metric increase.)
-
-
-      This is discretized to tiles.
+    discretization: 2.0
+  - name: deviation-center-line_median
+    order: lower-is-better
+    short: Lateral deviation
+    description: 'This is the median lateral deviation from the center line.
 
       '
-    discretization: 0.1
+    discretization: 0.01
+  - name: in-drivable-lane_median
+    order: lower-is-better
+    short: Major infractions
+    description: 'This is the median of the time spent outside of the drivable zones.
+
+      For example this penalizes driving in the wrong lane.
+
+      '
+    discretization: 0.2
 protocol: aido2_db18_agent-z2
 date_open: 2021-01-30 00:00:00+00:00
 date_close: 2021-12-31 00:00:00+00:00

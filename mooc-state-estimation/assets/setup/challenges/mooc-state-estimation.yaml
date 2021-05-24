@@ -1,9 +1,9 @@
-challenge: mooc-objdet
+challenge: mooc-state-estimation
 
-title: "MOOC - Object Detection"
-tags: [visible, ml-validation, aido, aido-embodied, LF, v4, simulation, protocol-normal, mooc]
+title: "MOOC - State Estimation"
+tags: [visible, aido, aido-embodied, LF, v4, simulation, protocol-normal, mooc]
 description: |
-  This is the challenge is part of the the MOOC's object detection exercise.
+  This is the challenge is part of the the MOOC's state estimation exercise.
 
   For more information about the "Self-Driving Cars with Duckietown" MOOC, visit [duckietown.org].
 

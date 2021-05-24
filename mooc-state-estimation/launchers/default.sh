@@ -17,7 +17,7 @@ dt-launchfile-init
 
 dt-exec roslaunch --wait agent agent_node.launch
 dt-exec roslaunch --wait car_interface all.launch veh:=$VEHICLE_NAME
-dt-exec roslaunch --wait visual_lane_following visual_lane_following_node.launch veh:=$VEHICLE_NAME
+dt-exec roslaunch --wait duckietown_demos lane_following.launch veh:=$VEHICLE_NAME
 
 
 # ----------------------------------------------------------------------------
