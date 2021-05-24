@@ -7,4 +7,6 @@ protocol: aido2_db18_agent-z2
 # any user label - displayed in "challenges list"
 user-label: exercise_ros_template
 # any JSON payload
-user-payload: {}
+user-payload:
+    features_required:
+        gpu: 1

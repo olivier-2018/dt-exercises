@@ -7,6 +7,8 @@ RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
 
 RUN mkdir /code/exercise_ws
 
+RUN pip uninstall -y dataclasses
+
 COPY exercise_ws /code/exercise_ws
 COPY launchers /code
 
