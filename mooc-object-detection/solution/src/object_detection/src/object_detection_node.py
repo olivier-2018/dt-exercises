@@ -61,7 +61,7 @@ class ObjectDetectionNode(DTROS):
         model_file = rospy.get_param('~model_file','.')
         self.veh = rospy.get_namespace().strip("/")
         aido_eval = rospy.get_param(f"/{self.veh}/AIDO_eval", False)
-        self.log(f"AIDO EVAL VAR: {self.AIDO_eval}")
+        self.log(f"AIDO EVAL VAR: {aido_eval}")
         self.log("Starting model loading!")
         self._debug = rospy.get_param("~debug", False)
         self.model_wrapper = Wrapper(aido_eval)
