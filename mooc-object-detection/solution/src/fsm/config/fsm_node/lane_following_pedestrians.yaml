@@ -16,10 +16,10 @@ events: # Maps from subscribing topic to signal ids
     topic: "object_detection_node/duckie_detected"
     msg_type: "BoolStamped"
     trigger: True
-  pedestrian_cleared:
-    topic: "object_detection_node/duckie_detected"
-    msg_type: "BoolStamped"
-    trigger: False
+#  pedestrian_cleared:
+#    topic: "object_detection_node/duckie_detected"
+#    msg_type: "BoolStamped"
+#    trigger: False
 
 # Define nodes
 nodes:
@@ -64,8 +64,8 @@ states:
     lights: ["lane_following"]
     current_status: "in_progress"
   DUCKIE_AVOID:
-    transitions:
-      pedestrian_cleared: "LANE_FOLLOWING"
+#    transitions:
+#      pedestrian_cleared: "LANE_FOLLOWING"
     active_nodes:
       - anti_instagram
       - decoder_node
