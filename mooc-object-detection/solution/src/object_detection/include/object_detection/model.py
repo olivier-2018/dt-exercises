@@ -95,6 +95,7 @@ class AMD64Model():
         super().__init__()
 
         import torch
+        torch.hub.set_dir('/code/solution/nn_models')
         self.model = torch.hub.load('ultralytics/yolov5', 'custom', path=f'{weight_file_path}.pt')
         try:
             if torch.cuda.is_available():

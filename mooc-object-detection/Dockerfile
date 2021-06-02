@@ -12,4 +12,8 @@ RUN mkdir /code/solution
 COPY solution /code/solution
 COPY launchers /code
 
+RUN ls /code/solution/nn_models
+
+RUN python3 -c "import torch; torch.hub.set_dir('/code/solution/nn_models'); model = torch.hub.load('ultralytics/yolov5', 'custom', path='/code/solution/nn_models/yolov5.pt')"
+
 CMD ["bash", "/code/submit.sh"]
