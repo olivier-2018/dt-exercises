@@ -13,6 +13,7 @@
 	<arg name="ai_interval" default="5" doc="interval with which the linear trafo gets updated. color balance is performed every second."/>
 	<arg name="line_detector_param_file_name" default="$(arg param_file_name)"/>
 	<arg name="intersectionType" default= "stopSign"/>
+	<arg name="AIDO_eval" default="false"/>
 	<!-- end args -->
 
     <!-- general convention on remappings is that we remap the "subscribers" -->
@@ -250,6 +251,7 @@
         <group if="$(arg /pedestrian_avoidance/object_detection)">
             <include file="$(find object_detection)/launch/object_detection_node.launch">
                 <arg name="veh" value="$(arg veh)"/>
+                <arg name="AIDO_eval" value="$(arg AIDO_eval)"/>
             </include>
         </group>
 
