@@ -5,7 +5,7 @@ source /code/catkin_ws/devel/setup.bash --extend
 source /code/submission_ws/devel/setup.bash --extend
 source /code/solution/devel/setup.bash --extend
 
-git clone https://github.com/Velythyl/dataclasses-spoof.git dataclasses && cd dataclasses &&  pip3 install . && cd ..
+pip3 install git+https://github.com/Velythyl/dataclasses-spoof
 pip3 install git+https://github.com/duckietown/lib-dt-mooc-2021
 
 # initialize launch file
