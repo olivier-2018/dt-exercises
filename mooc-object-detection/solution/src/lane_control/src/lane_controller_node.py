@@ -68,11 +68,6 @@ class LaneControllerNode(DTROS):
 
         self.publishCmd(car_control_msg)
 
-    def cbParametersChanged(self):
-        """Updates parameters in the controller object."""
-
-        self.controller.update_parameters(self.params)
-
 
 if __name__ == "__main__":
     # Initialize the node
